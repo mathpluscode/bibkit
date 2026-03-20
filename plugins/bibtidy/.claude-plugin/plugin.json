@@ -1,0 +1,5 @@
+{
+  "name": "bibtidy",
+  "description": "Validate and fix BibTeX reference files — verifies entries against Google Scholar and CrossRef, catches wrong authors, stale preprints, and incorrect metadata",
+  "version": "1.0.0"
+}
