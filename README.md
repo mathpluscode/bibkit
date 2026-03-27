@@ -1,21 +1,17 @@
-# bibtidy
+# bibkit
 
-A [Claude Code](https://docs.anthropic.com/en/docs/claude-code) skill that verifies each BibTeX entry exists and checks its metadata against publisher databases — catching wrong authors, wrong years, stale arXiv preprints, and incorrect page numbers.
+A bibliography toolkit for LaTeX, built as a [Claude Code](https://docs.anthropic.com/en/docs/claude-code) plugin.
+
+- **[bibtidy](#bibtidy)** — Cross-check BibTeX entries against Google Scholar, CrossRef, and conference/journal sites. Upgrades arXiv/bioRxiv preprints to published versions (even when the title changed upon publication), corrects metadata (authors, pages, venues), and flags semantic duplicates (e.g. a preprint and its published version cited separately).
 
 ## Install
 
 ```
-/plugin marketplace add mathpluscode/bibtidy
-/plugin install bibtidy@mathpluscode-bibtidy
+/plugin marketplace add mathpluscode/bibkit
+/plugin install bibkit@mathpluscode-bibkit
 ```
 
-If you installed version <= 1.0.2, uninstall before reinstall:
-
-```
-/plugin uninstall bibtidy@bibtidy
-```
-
-## Usage
+## bibtidy
 
 ```
 /bibtidy refs.bib
@@ -25,9 +21,9 @@ bibtidy verifies each entry against [Google Scholar](https://scholar.google.com/
 
 To remove bibtidy comments after review, ask Claude: "remove all bibtidy comments from refs.bib"
 
-## Examples
+### Examples
 
-<details open>
+<details>
 <summary><b>Example 1</b>: Google Scholar adds editors as co-authors (<a href="https://scholar.google.co.uk/scholar?hl=en&as_sdt=0%2C5&q=Estimation+of+non-normalized+statistical+models+by+score+matching&btnG=">source</a>)</summary>
 
 Before:
@@ -67,7 +63,7 @@ After:
 
 </details>
 
-<details open>
+<details>
 <summary><b>Example 2</b>: arXiv preprint upgraded to published version (<a href="https://scholar.google.co.uk/scholar?hl=en&as_sdt=0%2C5&q=Flow+matching+for+generative+modeling&btnG=">source</a>)</summary>
 
 Before:
@@ -222,9 +218,17 @@ After:
 
 ## FAQ
 
-**Why are page numbers so often wrong?**
+**Why does bibtidy flag so many page number errors?**
 
-Page numbers are one of the most common errors in BibTeX entries. Google Scholar extracts metadata by scraping PDFs rather than querying publisher databases, so page numbers are frequently incorrect. Worse, even official sources can disagree — for example, the same CVPR 2020 paper "Momentum Contrast for Unsupervised Visual Representation Learning" has pages 9729--9738 on [CVF Open Access](https://openaccess.thecvf.com/content_CVPR_2020/html/He_Momentum_Contrast_for_Unsupervised_Visual_Representation_Learning_CVPR_2020_paper.html) but pages 9726--9735 on [IEEE Xplore](https://ieeexplore.ieee.org/document/9157636), because IEEE re-paginates when compiling the full proceedings volume. bibtidy uses CrossRef as the authoritative source for page numbers. CrossRef gets metadata directly from publishers via DOI registration, so for IEEE/CVF conferences it returns the IEEE Xplore pagination (9726--9735 in the example above). When sources conflict, bibtidy applies the DOI-linked version and flags the entry with `% bibtidy: REVIEW` so you can verify.
+Google Scholar extracts metadata by scraping PDFs rather than querying publisher databases, so page numbers are frequently incorrect. Even official sources can disagree — for example, the same CVPR 2020 paper "Momentum Contrast for Unsupervised Visual Representation Learning" has pages 9729--9738 on [CVF Open Access](https://openaccess.thecvf.com/content_CVPR_2020/html/He_Momentum_Contrast_for_Unsupervised_Visual_Representation_Learning_CVPR_2020_paper.html) but pages 9726--9735 on [IEEE Xplore](https://ieeexplore.ieee.org/document/9157636), because IEEE re-paginates when compiling the full proceedings volume. bibtidy uses CrossRef as the authoritative source for page numbers. CrossRef gets metadata directly from publishers via DOI registration, so for IEEE/CVF conferences it returns the IEEE Xplore pagination (9726--9735 in the example above). When sources conflict, bibtidy applies the DOI-linked version and flags the entry with `% bibtidy: REVIEW` so you can verify.
+
+**Why a Claude Code plugin instead of a Python package?**
+
+The core challenge is reliable access to bibliographic data:
+
+- **bibtidy** needs to search Google Scholar, CrossRef, and conference/journal sites. Google Scholar has no official API and bans scrapers; Semantic Scholar's public API (1,000 req/s) is shared globally so availability is unpredictable. Claude Code's built-in web search sidesteps both problems — no API keys, no shared rate limits. Citation metadata (title, authors, venue, year) is almost never behind a paywall, so Claude can simply visit the publisher page and read the correct information.
+
+Building on Claude Code also keeps the codebase small — the plugin reuses existing search and editing capabilities rather than reimplementing HTTP clients, parsers, and retry logic.
 
 ## License
 

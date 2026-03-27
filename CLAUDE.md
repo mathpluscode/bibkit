@@ -1,11 +1,11 @@
-# bibtidy
+# bibkit
 
-A Claude Code plugin that validates and fixes BibTeX files.
+A bibliography toolkit for LaTeX — Claude Code plugin.
 
 ## Project structure
 
 ```
-bibtidy/
+bibkit/
 ├── .claude-plugin/
 │   └── plugin.json             ← plugin manifest
 ├── skills/

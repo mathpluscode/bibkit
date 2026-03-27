@@ -3,8 +3,8 @@ revision = 3
 requires-python = ">=3.10"
 
 [[package]]
-name = "bibtidy"
-version = "1.1.0"
+name = "bibkit"
+version = "1.2.0"
 source = { virtual = "." }
 
 [package.dev-dependencies]

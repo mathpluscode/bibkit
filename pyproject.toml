@@ -1,7 +1,7 @@
 [project]
-name = "bibtidy"
-version = "1.1.0"
-description = "Claude Code plugin that validates and fixes BibTeX files"
+name = "bibkit"
+version = "1.2.0"
+description = "A bibliography toolkit for LaTeX — Claude Code plugin"
 requires-python = ">=3.10"
 license = "MIT"
 

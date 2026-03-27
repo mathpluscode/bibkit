@@ -1,19 +1,19 @@
 {
-  "name": "bibtidy",
+  "name": "bibkit",
   "owner": {
     "name": "Yunguan Fu"
   },
   "metadata": {
-    "description": "BibTeX reference file validator and fixer for Claude Code",
-    "repository": "https://github.com/mathpluscode/bibtidy",
-    "homepage": "https://github.com/mathpluscode/bibtidy"
+    "description": "A bibliography toolkit for LaTeX — Claude Code plugin",
+    "repository": "https://github.com/mathpluscode/bibkit",
+    "homepage": "https://github.com/mathpluscode/bibkit"
   },
   "plugins": [
     {
-      "name": "bibtidy",
+      "name": "bibkit",
       "source": "./",
-      "description": "Validate and fix BibTeX reference files — verifies entries against Google Scholar and CrossRef, catches wrong authors, stale preprints, and incorrect metadata",
-      "version": "1.1.0",
+      "description": "A bibliography toolkit for LaTeX",
+      "version": "1.2.0",
       "keywords": ["bibtex", "bibliography", "latex", "overleaf", "academic", "reference", "citation"],
       "category": "academic",
       "license": "MIT"
