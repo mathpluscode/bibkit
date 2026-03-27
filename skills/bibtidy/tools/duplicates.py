@@ -50,6 +50,10 @@ def parse_bib_entries(text):
     # (including any nested @-entries) are not picked up.
     text = _remove_special_blocks(text)
 
+    # Strip BibTeX comment lines (lines starting with %) so that
+    # commented-out entries from bibtidy's own output are not parsed.
+    text = re.sub(r"(?m)^[ \t]*%.*$", "", text)
+
     # Find every @type{ pattern
     entry_starts = list(re.finditer(r"@(\w+)\s*\{", text))
 
@@ -266,8 +270,8 @@ def find_duplicates(entries):
         # -- same key --
         keys_seen.setdefault(key, []).append(i)
 
-        # -- same doi --
-        doi = entry.get("doi", "").strip().lower()
+        # -- same doi (strip https://doi.org/ prefix before indexing) --
+        doi = re.sub(r"^https?://doi\.org/", "", entry.get("doi", "").strip(), flags=re.IGNORECASE).lower()
         if doi:
             dois_seen.setdefault(doi, []).append(i)
 

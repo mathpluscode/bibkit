@@ -268,6 +268,69 @@ class TestQuotedValues:
         assert len([d for d in _run(bib) if d["type"] == "same_title"]) == 1
 
 
+class TestCommentedOutEntries:
+    def test_bibtidy_comments_skipped(self):
+        """Commented-out originals from bibtidy output should not be parsed."""
+        bib = """
+% @article{hyvarinen2005estimation,
+%   title={Estimation of non-normalized statistical models by score matching.},
+%   author={Hyv{\\"a}rinen, Aapo and Dayan, Peter},
+%   journal={Journal of Machine Learning Research},
+%   volume={6},
+%   number={4},
+%   year={2005}
+% }
+% bibtidy: source https://jmlr.org/papers/v6/hyvarinen05a.html
+@article{hyvarinen2005estimation,
+  title={Estimation of non-normalized statistical models by score matching},
+  author={Hyv{\\"a}rinen, Aapo},
+  journal={Journal of Machine Learning Research},
+  volume={6},
+  number={24},
+  pages={695--709},
+  year={2005}
+}
+"""
+        entries = parse_bib_entries(bib)
+        assert len(entries) == 1
+        assert entries[0]["key"] == "hyvarinen2005estimation"
+
+    def test_no_false_duplicates_on_rerun(self):
+        """Running duplicates on bibtidy output should not report false duplicates."""
+        bib = """
+% @article{foo2020,
+%   title={Some Paper},
+%   author={Foo, Bar},
+%   year={2020}
+% }
+@article{foo2020,
+  title={Some Paper},
+  author={Foo, Bar},
+  year={2020}
+}
+"""
+        assert _run(bib) == []
+
+
+class TestDOIURLNormalization:
+    def test_url_prefix_vs_bare(self):
+        """DOIs with and without https://doi.org/ prefix should be detected as duplicates."""
+        bib = """
+@article{A1, title={Paper A}, doi={https://doi.org/10.1234/foo}}
+@article{A2, title={Paper B}, doi={10.1234/foo}}
+"""
+        same_doi = [d for d in _run(bib) if d["type"] == "same_doi"]
+        assert len(same_doi) == 1
+
+    def test_http_prefix(self):
+        bib = """
+@article{B1, title={Paper A}, doi={http://doi.org/10.1234/bar}}
+@article{B2, title={Paper B}, doi={10.1234/bar}}
+"""
+        same_doi = [d for d in _run(bib) if d["type"] == "same_doi"]
+        assert len(same_doi) == 1
+
+
 class TestEscapedBraces:
     def test_escaped_braces_in_title(self):
         """Escaped braces \\{ and \\} should not affect depth counting."""

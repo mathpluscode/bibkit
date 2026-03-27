@@ -40,11 +40,7 @@ Invoke with `/bibtidy refs.bib`. Claude reads the .bib file, dispatches parallel
 
 ## Versioning
 
-Version is tracked in three files (`.claude-plugin/marketplace.json`, `.claude-plugin/plugin.json`, `pyproject.toml`). Bump all at once:
-
-```
-./bump.sh 1.2.0
-```
+Version is tracked in three files (`.claude-plugin/marketplace.json`, `.claude-plugin/plugin.json`, `pyproject.toml`). Update all three, then run `uv lock` to sync `uv.lock`.
 
 ## Development
 

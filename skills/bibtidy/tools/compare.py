@@ -118,8 +118,9 @@ def compare_entry(entry: dict, crossref: dict) -> list[dict]:
     if bib_year and cr_year and bib_year != cr_year:
         _add("year", bib_year, cr_year)
 
-    # Journal / booktitle
-    bib_venue = entry.get("journal") or entry.get("booktitle") or ""
+    # Journal / booktitle — use the actual field name from the entry
+    bib_venue_field = "journal" if "journal" in entry else "booktitle" if "booktitle" in entry else None
+    bib_venue = entry.get(bib_venue_field, "") if bib_venue_field else ""
     cr_venue = crossref.get("journal") or ""
     if bib_venue and cr_venue:
         is_preprint = re.search(
@@ -128,11 +129,11 @@ def compare_entry(entry: dict, crossref: dict) -> list[dict]:
         if is_preprint:
             # Preprint upgraded to published venue
             if not re.search(r"\b(arxiv|biorxiv|chemrxiv)\b", cr_venue, re.IGNORECASE):
-                _add("journal", bib_venue, cr_venue)
+                _add(bib_venue_field, bib_venue, cr_venue)
         else:
             # Non-preprint venue mismatch (flag for review, don't auto-fix)
             if _normalize_title(bib_venue) != _normalize_title(cr_venue):
-                _add("journal", bib_venue, cr_venue, "review")
+                _add(bib_venue_field, bib_venue, cr_venue, "review")
 
     # Volume
     bib_vol = entry.get("volume", "").strip()

@@ -207,6 +207,30 @@ class TestEntryType:
         assert compare_entry(entry, cr) == []
 
 
+class TestBootitleVsJournal:
+    def test_booktitle_field_preserved(self):
+        """Venue mismatch for @inproceedings should use 'booktitle' so Claude edits the right field."""
+        entry = {
+            "key": "X",
+            "entry_type": "inproceedings",
+            "booktitle": "Proceedings of the IEEE/CVF international conference on computer vision",
+        }
+        cr = {"journal": "2021 IEEE/CVF International Conference on Computer Vision (ICCV)"}
+        ms = compare_entry(entry, cr)
+        venue_ms = [m for m in ms if m["field"] in ("journal", "booktitle")]
+        for m in venue_ms:
+            assert m["field"] == "booktitle", "Should use 'booktitle' not 'journal'"
+
+    def test_journal_field_preserved(self):
+        """Venue mismatch for @article should use 'journal' so Claude edits the right field."""
+        entry = {"key": "X", "entry_type": "article", "journal": "arXiv preprint arXiv:2210.02747"}
+        cr = {"journal": "Nature"}
+        ms = compare_entry(entry, cr)
+        venue_ms = [m for m in ms if m["field"] in ("journal", "booktitle")]
+        assert len(venue_ms) == 1
+        assert venue_ms[0]["field"] == "journal"
+
+
 class TestCombined:
     def test_strudel_case(self):
         """The exact case that failed: subtle page number difference."""
