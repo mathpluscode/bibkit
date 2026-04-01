@@ -26,27 +26,36 @@ def parse_entries(text: str) -> list[dict]:
         key: citation key (e.g. "vaswani2017attention")
         lines: list of raw lines for the entry body
         bibtidy_comments: list of "% bibtidy: ..." lines preceding the entry
-        is_duplicate_target: True if this entry only gained a DUPLICATE comment
+        title: section title from preceding comment (e.g. "Wrong co-author ...")
     """
     entries: list[dict] = []
     lines = text.splitlines()
     i = 0
+    section_title = ""
     while i < len(lines):
         line = lines[i]
-        # Skip @string, @preamble, blank lines, and descriptive comments
+        stripped = line.strip()
+        # Skip @string, @preamble, and blank lines
+        if not stripped or re.match(r"^@(string|preamble)", stripped, re.IGNORECASE):
+            i += 1
+            continue
+
+        # Section title comment: starts with "% " but not bibtidy/commented-out entry
         if (
-            not line.strip()
-            or line.strip().startswith("% ---")
-            or line.strip().startswith("% Test fixture")
-            or line.strip().startswith("% Each entry")
-            or re.match(r"^@(string|preamble)", line.strip(), re.IGNORECASE)
+            stripped.startswith("% ")
+            and not stripped.startswith("% bibtidy:")
+            and not stripped.startswith("% @")
+            and not stripped.startswith("%   ")
+            and not re.match(r"^%\s+\w+=", stripped)
         ):
+            # Skip file-level comments (first two lines)
+            if "test fixture" not in stripped.lower() and "each entry" not in stripped.lower():
+                section_title = stripped.lstrip("% ").strip()
             i += 1
             continue
 
         # Collect commented-out original and bibtidy comments
         bibtidy_comments: list[str] = []
-        # Skip commented-out original entry lines (% @... or %   ...)
         while i < len(lines) and lines[i].startswith("%"):
             if lines[i].strip().startswith("% bibtidy:"):
                 bibtidy_comments.append(lines[i].strip())
@@ -71,7 +80,8 @@ def parse_entries(text: str) -> list[dict]:
             brace_depth += lines[i].count("{") - lines[i].count("}")
             i += 1
 
-        entries.append({"key": key, "lines": entry_lines, "bibtidy_comments": bibtidy_comments})
+        entries.append({"key": key, "lines": entry_lines, "bibtidy_comments": bibtidy_comments, "title": section_title})
+        section_title = ""
 
     return entries
 
@@ -120,30 +130,6 @@ def classify_entry(bibtidy_comments: list[str], diff: list[tuple[str, str]]) -> 
     if has_changes:
         return "badge-fix", "fix"
     return "badge-ok", "unchanged"
-
-
-def make_title(bibtidy_comments: list[str], diff: list[tuple[str, str]]) -> str:
-    """Generate a human-readable title for the diff card."""
-    joined = " ".join(bibtidy_comments).lower()
-    has_changes = any(t != "ctx" for t, _ in diff)
-
-    if not has_changes and not bibtidy_comments:
-        return "Correct entry left unchanged"
-    if "duplicate" in joined:
-        return "bioRxiv preprint duplicated with published version"
-    if "updated from arxiv" in joined and "title updated" in joined:
-        return "arXiv preprint upgraded with title change"
-    if "published" in joined and ("arxiv" in joined or "iclr" in joined):
-        return "arXiv preprint upgraded to published version"
-    if "removed" in joined and ("editor" in joined or "co-author" in joined):
-        return "Editor listed as co-author"
-    if "page" in joined and "corrected" in joined:
-        return "Wrong page numbers from Google Scholar"
-    if "doi" in joined or "hyphen" in joined:
-        return "DOI URL prefix and wrong page range hyphen"
-    if "casing" in joined or "surname" in joined:
-        return "Journal casing and compound surname fix"
-    return "Entry corrected"
 
 
 _URL_RE = re.compile(r"(https?://[^\s,;)\"'&{}]+)")
@@ -282,6 +268,20 @@ def build_html(cards_html: str) -> str:
   .header h1 {{ font-size: 2rem; font-weight: 600; margin-bottom: 0.5rem; }}
   .header p {{ color: var(--text-muted); font-size: 1.1rem; }}
 
+  .github-link {{
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    margin-top: 0.75rem;
+    color: var(--text-muted);
+    text-decoration: none;
+    font-size: 0.9rem;
+  }}
+
+  .github-link:hover {{ color: var(--accent); }}
+
+  .github-link svg {{ fill: currentColor; }}
+
   .container {{ max-width: 960px; margin: 0 auto; padding: 0 1rem 2rem; }}
 
   .tabs {{
@@ -418,6 +418,10 @@ def build_html(cards_html: str) -> str:
   <div class="container">
     <h1>bibtools</h1>
     <p>A bibliography toolkit for LaTeX &mdash; built as a Claude Code plugin.</p>
+    <a class="github-link" href="https://github.com/mathpluscode/bibtools" target="_blank" rel="noopener">
+      <svg height="18" width="18" viewBox="0 0 16 16"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27s1.36.09 2 .27c1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8z"/></svg>
+      GitHub
+    </a>
   </div>
 </div>
 
@@ -521,7 +525,7 @@ def main() -> None:
         diff = compute_diff(inp["lines"], exp["lines"])
         bibtidy_comments = exp["bibtidy_comments"]
         badge_class, badge_label = classify_entry(bibtidy_comments, diff)
-        title = make_title(bibtidy_comments, diff)
+        title = inp.get("title") or exp.get("title") or "Entry corrected"
         # Handle duplicate pair: include second entry in same card
         if "duplicate" in " ".join(bibtidy_comments).lower():
             # Find the target of the duplicate
