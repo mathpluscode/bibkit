@@ -13,7 +13,7 @@
       "name": "bibkit",
       "source": "./",
       "description": "A bibliography toolkit for LaTeX",
-      "version": "1.2.1",
+      "version": "1.2.2",
       "keywords": ["bibtex", "bibliography", "latex", "overleaf", "academic", "reference", "citation"],
       "category": "academic",
       "license": "MIT"

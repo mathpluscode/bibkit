@@ -6,9 +6,6 @@ import os
 import subprocess
 import sys
 
-
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "skills", "bibtidy", "tools"))
-
 from duplicates import find_duplicates, is_preprint, normalize_title, parse_bib_entries
 
 TOOL_PATH = os.path.join(os.path.dirname(__file__), "..", "skills", "bibtidy", "tools", "duplicates.py")

@@ -2,12 +2,8 @@
 """Tests for validate.py — structural validation helpers."""
 
 import os
-import sys
 
 import pytest
-
-# Import from tests directory
-sys.path.insert(0, os.path.dirname(__file__))
 
 from duplicates import parse_bib_entries
 

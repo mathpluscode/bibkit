@@ -44,7 +44,10 @@ def _normalize_title(title: str) -> str:
 
 
 def _normalize_author_list(authors_str: str) -> list[str]:
-    """Parse 'Last, First and Last, First' into sorted lowercase last names."""
+    """Parse 'Last, First and Last, First' into ordered lowercase last names.
+
+    Preserves order so first-author swaps are detected.
+    """
     names = []
     for name in authors_str.split(" and "):
         name = name.strip()
@@ -58,11 +61,11 @@ def _normalize_author_list(authors_str: str) -> list[str]:
         last = last.replace("{", "").replace("}", "")
         last = re.sub(r"\\.", "", last)
         names.append(last.lower())
-    return sorted(names)
+    return names
 
 
 def _crossref_author_last_names(authors: list[str]) -> list[str]:
-    """Extract sorted lowercase last names from CrossRef 'Last, First' strings."""
+    """Extract ordered lowercase last names from CrossRef 'Last, First' strings."""
     names = []
     for a in authors:
         if "," in a:
@@ -71,7 +74,7 @@ def _crossref_author_last_names(authors: list[str]) -> list[str]:
             parts = a.split()
             last = parts[-1].lower() if parts else ""
         names.append(last)
-    return sorted(names)
+    return names
 
 
 def compare_entry(entry: dict, crossref: dict) -> list[dict]:
@@ -92,19 +95,21 @@ def compare_entry(entry: dict, crossref: dict) -> list[dict]:
         if _normalize_title(bib_title) != _normalize_title(cr_title):
             _add("title", bib_title, cr_title)
 
-    # Authors (compare last names only — first name formats vary)
+    # Authors (compare ordered last names — first name formats vary too much)
     bib_author = entry.get("author", "")
     cr_authors = crossref.get("authors", [])
     if bib_author and cr_authors:
         bib_names = _normalize_author_list(bib_author)
         cr_names = _crossref_author_last_names(cr_authors)
-        # Ignore "others" truncation: only compare if bib has fewer unique names
-        # that don't appear in CrossRef
-        bib_set = set(bib_names)
-        cr_set = set(cr_names)
-        extra_in_bib = bib_set - cr_set
-        missing_from_bib = cr_set - bib_set
-        if extra_in_bib or (missing_from_bib and len(bib_names) >= len(cr_names)):
+        # Compare the overlapping prefix — flag if it disagrees or if
+        # either side has authors the other doesn't.
+        n = min(len(bib_names), len(cr_names))
+        prefix_matches = bib_names[:n] == cr_names[:n]
+        if not prefix_matches:
+            # The authors they both list don't agree (wrong names or order)
+            _add("author", bib_author, " and ".join(cr_authors), "review")
+        elif len(bib_names) != len(cr_names):
+            # One side has more authors than the other — let Claude decide
             _add("author", bib_author, " and ".join(cr_authors), "review")
 
     # Year

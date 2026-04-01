@@ -7,6 +7,7 @@ A bibliography toolkit for LaTeX — Claude Code plugin.
 ```
 bibkit/
 ├── .claude-plugin/
+│   ├── marketplace.json        ← marketplace catalog
 │   └── plugin.json             ← plugin manifest
 ├── skills/
 │   └── bibtidy/
@@ -35,6 +36,8 @@ bibkit/
 ```
 
 ## How it works
+
+### bibtidy
 
 Invoke with `/bibtidy refs.bib`. Claude reads the .bib file, dispatches parallel subagents to verify entries against Google Scholar (WebSearch) and CrossRef (bundled `crossref.py`), then applies fixes sequentially using targeted Edit tool replacements. Every change includes the original entry commented out and a source URL for verification.
 

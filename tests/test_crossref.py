@@ -2,14 +2,8 @@
 """Tests for crossref.py — JSON parsing/formatting and error handling."""
 
 import json
-import os
-import sys
-from unittest.mock import patch
-
 import urllib.error
-
-# Ensure the crossref module is importable.
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), os.pardir, "skills", "bibtidy", "tools")))
+from unittest.mock import patch
 
 import crossref
 

@@ -1,6 +1,8 @@
 ---
 name: bibtidy
 description: Use when the user wants to validate, check, or fix a BibTeX (.bib) reference file — wrong authors, stale arXiv preprints, incorrect metadata, duplicate entries, formatting issues
+argument-hint: <path-to-file.bib>
+allowed-tools: Bash(python3 *), Read, Edit, Agent, WebSearch
 ---
 
 Validate and fix the BibTeX file at: $ARGUMENTS
@@ -28,8 +30,7 @@ All bundled tools live in the `tools/` directory next to this SKILL.md, installe
 ```
 TOOLS_DIR="$HOME/.claude/skills/bibtidy/tools"
 if [ ! -f "$TOOLS_DIR/crossref.py" ]; then
-  echo "Error: bibtidy tools not found. Reinstall the plugin." >&2
-  exit 1
+  TOOLS_DIR="${CLAUDE_PLUGIN_ROOT}/skills/bibtidy/tools"
 fi
 ```
 

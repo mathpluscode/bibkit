@@ -1,12 +1,6 @@
 #!/usr/bin/env python3
 """Tests for compare.py — field-level comparison between BibTeX and CrossRef."""
 
-import os
-import sys
-
-
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "skills", "bibtidy", "tools"))
-
 from compare import compare_entry
 
 
@@ -57,7 +51,8 @@ class TestTitle:
 
 
 class TestAuthors:
-    def test_extra_author_in_bib(self):
+    def test_bib_has_more_authors_than_crossref_is_ok(self):
+        """Bib with more authors is OK — CrossRef may truncate."""
         entry = {"key": "X", "author": "Smith, John and Dayan, Peter"}
         cr = {"authors": ["Smith, John"]}
         ms = compare_entry(entry, cr)
@@ -69,12 +64,47 @@ class TestAuthors:
         ms = compare_entry(entry, cr)
         assert not any(m["field"] == "author" for m in ms)
 
+    def test_swapped_author_order(self):
+        """First-author swap should be flagged."""
+        entry = {"key": "X", "author": "Doe, Jane and Smith, John"}
+        cr = {"authors": ["Smith, John", "Doe, Jane"]}
+        ms = compare_entry(entry, cr)
+        assert any(m["field"] == "author" for m in ms)
+
     def test_bib_has_others(self):
-        """'and others' truncation should not flag missing authors."""
+        """'and others' with full list available should be flagged for Claude to decide."""
         entry = {"key": "X", "author": "Smith, John and others"}
         cr = {"authors": ["Smith, John", "Doe, Jane", "Lee, Bob"]}
         ms = compare_entry(entry, cr)
-        assert not any(m["field"] == "author" for m in ms)
+        assert any(m["field"] == "author" for m in ms)
+
+    def test_bib_has_others_wrong_order(self):
+        """'and others' with wrong prefix order should be flagged."""
+        entry = {"key": "X", "author": "Doe, Jane and Smith, John and others"}
+        cr = {"authors": ["Smith, John", "Doe, Jane", "Lee, Bob"]}
+        ms = compare_entry(entry, cr)
+        assert any(m["field"] == "author" for m in ms)
+
+    def test_bib_has_more_authors_than_crossref(self):
+        """Bib with more authors than CrossRef should be flagged for Claude to decide."""
+        entry = {"key": "X", "author": "Smith, John and Doe, Jane and Lee, Bob"}
+        cr = {"authors": ["Smith, John", "Doe, Jane"]}
+        ms = compare_entry(entry, cr)
+        assert any(m["field"] == "author" for m in ms)
+
+    def test_bib_has_more_but_wrong_prefix(self):
+        """Bib with more authors should be flagged if the shared prefix disagrees."""
+        entry = {"key": "X", "author": "Doe, Jane and Smith, John and Lee, Bob"}
+        cr = {"authors": ["Smith, John", "Doe, Jane"]}
+        ms = compare_entry(entry, cr)
+        assert any(m["field"] == "author" for m in ms)
+
+    def test_bib_missing_authors_no_others(self):
+        """Bib with fewer authors and no 'others' should be flagged."""
+        entry = {"key": "X", "author": "Smith, John"}
+        cr = {"authors": ["Smith, John", "Doe, Jane", "Lee, Bob"]}
+        ms = compare_entry(entry, cr)
+        assert any(m["field"] == "author" for m in ms)
 
 
 class TestYear:

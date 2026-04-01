@@ -5,9 +5,6 @@ import os
 import subprocess
 import sys
 
-
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "skills", "bibtidy", "tools"))
-
 from fmt import check_changed_entry, parse_entries
 
 TOOL_PATH = os.path.join(os.path.dirname(__file__), "..", "skills", "bibtidy", "tools", "fmt.py")
