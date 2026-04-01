@@ -210,3 +210,4 @@ __marimo__/
 tests/bibtidy/fixtures/got.bib
 *.bib.orig
 TODO.md
+.DS_Store

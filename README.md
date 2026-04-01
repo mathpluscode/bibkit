@@ -4,6 +4,8 @@ A bibliography toolkit for LaTeX, built as a [Claude Code](https://docs.anthropi
 
 - **[bibtidy](#bibtidy)** — Cross-check BibTeX entries against Google Scholar, CrossRef, and conference/journal sites. Upgrades arXiv/bioRxiv preprints to published versions (even when the title changed upon publication), corrects metadata (authors, pages, venues), and flags semantic duplicates (e.g. a preprint and its published version cited separately).
 
+![bibtidy demo](bibtidy_demo.gif)
+
 ## Install
 
 Add the marketplace in Claude Code:
