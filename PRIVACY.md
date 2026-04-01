@@ -1,14 +1,14 @@
 # Privacy Policy
 
-**bibkit** is a Claude Code plugin — a bibliography toolkit for LaTeX. It does not collect, store, or transmit any personal data.
+**bibtools** is a Claude Code plugin — a bibliography toolkit for LaTeX. It does not collect, store, or transmit any personal data.
 
-## What bibkit does
+## What bibtools does
 
 - Reads and edits `.bib` files on your local machine
 - Sends bibliographic metadata (paper titles, author names) to public APIs (CrossRef, Google Scholar) to verify reference accuracy
 - All processing happens locally within your Claude Code session
 
-## What bibkit does NOT do
+## What bibtools does NOT do
 
 - Collect or store any personal information
 - Track usage or analytics
@@ -17,7 +17,7 @@
 
 ## Third-party services
 
-bibkit queries the following public APIs during verification:
+bibtools queries the following public APIs during verification:
 
 | Service | Data sent | Privacy policy |
 |---------|-----------|----------------|
@@ -26,4 +26,4 @@ bibkit queries the following public APIs during verification:
 
 ## Contact
 
-If you have questions about this privacy policy, please open an issue at https://github.com/mathpluscode/bibkit/issues.
+If you have questions about this privacy policy, please open an issue at https://github.com/mathpluscode/bibtools/issues.

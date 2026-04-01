@@ -1,11 +1,11 @@
-# bibkit
+# bibtools
 
 A bibliography toolkit for LaTeX — Claude Code plugin.
 
 ## Project structure
 
 ```
-bibkit/
+bibtools/
 ├── .claude-plugin/
 │   ├── marketplace.json        ← marketplace catalog
 │   └── plugin.json             ← plugin manifest

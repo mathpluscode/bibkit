@@ -1,16 +1,16 @@
 {
-  "name": "bibkit",
+  "name": "bibtools",
   "owner": {
     "name": "Yunguan Fu"
   },
   "metadata": {
     "description": "A bibliography toolkit for LaTeX — Claude Code plugin",
-    "repository": "https://github.com/mathpluscode/bibkit",
-    "homepage": "https://github.com/mathpluscode/bibkit"
+    "repository": "https://github.com/mathpluscode/bibtools",
+    "homepage": "https://bib.tools"
   },
   "plugins": [
     {
-      "name": "bibkit",
+      "name": "bibtools",
       "source": "./",
       "description": "A bibliography toolkit for LaTeX",
       "version": "1.2.3",

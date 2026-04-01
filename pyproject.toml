@@ -1,5 +1,5 @@
 [project]
-name = "bibkit"
+name = "bibtools"
 version = "1.2.3"
 description = "A bibliography toolkit for LaTeX — Claude Code plugin"
 requires-python = ">=3.10"

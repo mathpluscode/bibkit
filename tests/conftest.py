@@ -1,1 +1,1 @@
-"""Pytest configuration for bibkit tests."""
+"""Pytest configuration for bibtools tests."""

@@ -1,4 +1,4 @@
-# bibkit
+# bibtools
 
 A bibliography toolkit for LaTeX, built as a [Claude Code](https://docs.anthropic.com/en/docs/claude-code) plugin.
 
@@ -9,13 +9,13 @@ A bibliography toolkit for LaTeX, built as a [Claude Code](https://docs.anthropi
 Add the marketplace in Claude Code:
 
 ```bash
-/plugin marketplace add mathpluscode/bibkit
+/plugin marketplace add mathpluscode/bibtools
 ```
 
 Install the plugin:
 
 ```bash
-/plugin install bibkit@mathpluscode-bibkit
+/plugin install bibtools@mathpluscode-bibtools
 ```
 
 Reload plugins:
