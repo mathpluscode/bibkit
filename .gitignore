@@ -207,7 +207,9 @@ marimo/_lsp/
 __marimo__/
 .idea/
 .claude/settings.local.json
-tests/bibtidy/fixtures/got.bib
+.uv-cache/
+tests/bibtidy/fixtures/got_cc.bib
+tests/bibtidy/fixtures/got_codex.bib
 *.bib.orig
 TODO.md
 .DS_Store

@@ -4,16 +4,19 @@
     "name": "Yunguan Fu"
   },
   "metadata": {
-    "description": "A bibliography toolkit for LaTeX — Claude Code plugin",
+    "description": "A bibliography toolkit for LaTeX, built as agent skills",
     "repository": "https://github.com/mathpluscode/bibtools",
     "homepage": "https://bib.tools"
   },
   "plugins": [
     {
       "name": "bibtools",
-      "source": "./",
+      "source": {
+        "source": "local",
+        "path": "./"
+      },
       "description": "A bibliography toolkit for LaTeX",
-      "version": "1.4.0",
+      "version": "1.5.0",
       "keywords": ["bibtex", "bibliography", "latex", "overleaf", "academic", "reference", "citation"],
       "category": "academic",
       "license": "MIT"

@@ -1,12 +1,13 @@
 {
   "name": "bibtools",
   "description": "A bibliography toolkit for LaTeX",
-  "version": "1.4.0",
+  "version": "1.5.0",
   "author": {
     "name": "Yunguan Fu"
   },
   "repository": "https://github.com/mathpluscode/bibtools",
   "homepage": "https://bib.tools",
   "license": "MIT",
-  "keywords": ["bibtex", "bibliography", "latex", "overleaf", "academic", "reference", "citation"]
+  "keywords": ["bibtex", "bibliography", "latex", "overleaf", "academic", "reference", "citation"],
+  "skills": "./skills/"
 }

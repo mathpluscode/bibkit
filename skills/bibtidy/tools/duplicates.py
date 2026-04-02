@@ -262,22 +262,6 @@ def normalize_title(title):
     return t
 
 
-_PREPRINT_RE = re.compile(r"\b(arxiv|biorxiv|chemrxiv|medrxiv)\b", re.IGNORECASE)
-
-
-def is_preprint(entry):
-    """Return True if the entry looks like a preprint."""
-    for field in ("journal", "note", "howpublished"):
-        if _PREPRINT_RE.search(entry.get(field, "")):
-            return True
-    if entry.get("archiveprefix", "").lower() in ("arxiv",):
-        return True
-    if entry.get("eprint", ""):
-        # eprint field is commonly used for arXiv IDs
-        return bool(re.match(r"\d{4}\.\d+", entry.get("eprint", "")))
-    return False
-
-
 def _normalize_author_last(name):
     """Extract a lowercase last name from 'Last, First' or 'First Last'."""
     name = name.strip()
@@ -352,7 +336,7 @@ def find_duplicates(entries):
                             {"type": "same_doi", "key1": ea["key"], "key2": eb["key"], "detail": f"Same DOI: {doi}"}
                         )
 
-    # Collect same-title duplicates and preprint+published pairs
+    # Collect same-title duplicates
     for norm_title, idxs in titles_seen.items():
         if len(idxs) > 1:
             for a in range(len(idxs)):
@@ -360,36 +344,17 @@ def find_duplicates(entries):
                     ea, eb = entries[idxs[a]], entries[idxs[b]]
                     if ea["key"] == eb["key"]:
                         continue  # already caught by same_key
-
-                    # Check preprint+published
-                    a_pre = is_preprint(ea)
-                    b_pre = is_preprint(eb)
-                    ja = ea.get("journal", "") or ea.get("booktitle", "")
-                    jb = eb.get("journal", "") or eb.get("booktitle", "")
-
-                    if (a_pre and not b_pre and jb) or (b_pre and not a_pre and ja):
-                        pre_key = ea["key"] if a_pre else eb["key"]
-                        pub_key = eb["key"] if a_pre else ea["key"]
+                    # Require at least one shared author to reduce false
+                    # positives on generic titles like "A Survey of …"
+                    if _share_author(ea, eb):
                         duplicates.append(
                             {
-                                "type": "preprint_published",
-                                "key1": pre_key,
-                                "key2": pub_key,
-                                "detail": f"Preprint and published version of: {norm_title}",
+                                "type": "same_title",
+                                "key1": ea["key"],
+                                "key2": eb["key"],
+                                "detail": f"Same normalised title: {norm_title}",
                             }
                         )
-                    else:
-                        # Require at least one shared author to reduce false
-                        # positives on generic titles like "A Survey of …"
-                        if _share_author(ea, eb):
-                            duplicates.append(
-                                {
-                                    "type": "same_title",
-                                    "key1": ea["key"],
-                                    "key2": eb["key"],
-                                    "detail": f"Same normalised title: {norm_title}",
-                                }
-                            )
 
     return duplicates
 

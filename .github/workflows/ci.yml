@@ -1,4 +1,4 @@
-name: CI
+name: Lint and Test
 
 on:
   push:
@@ -24,3 +24,7 @@ jobs:
           python-version: "3.12"
       - uses: astral-sh/setup-uv@v5
       - run: uv run pytest tests/ -v
+      - name: Check docs/index.html is up to date
+        run: |
+          python docs/build.py
+          git diff --exit-code docs/index.html

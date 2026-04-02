@@ -1,12 +1,16 @@
 # bibtools
 
-A bibliography toolkit for LaTeX, built as a [Claude Code](https://docs.anthropic.com/en/docs/claude-code) plugin.
+A bibliography toolkit for LaTeX, built as agent skills. Available for [Claude Code](https://docs.anthropic.com/en/docs/claude-code) and [Codex](https://openai.com/index/introducing-codex/).
 
-**[bibtidy](#bibtidy)** — Cross-check BibTeX entries against Google Scholar, CrossRef, and conference/journal sites. Upgrades arXiv/bioRxiv preprints to published versions (even when the title changed upon publication), corrects metadata (authors, pages, venues), and flags semantic duplicates (e.g. a preprint and its published version cited separately).
+**[bibtidy](#bibtidy)** — Cross-check BibTeX entries against Google Scholar, CrossRef, and conference/journal sites. Upgrades arXiv/bioRxiv preprints to published versions (even when the title changed upon publication), corrects metadata (authors, pages, venues), and flags duplicate entries.
 
 ![bibtidy demo](docs/bibtidy_demo.gif)
 
 ## Install
+
+Installation differs by platform. Claude Code uses the plugin marketplace; Codex uses native skill discovery.
+
+### Claude Code
 
 Add the marketplace in Claude Code:
 
@@ -26,13 +30,23 @@ Reload plugins:
 /reload-plugins
 ```
 
+### Codex
+
+Tell Codex:
+
+```text
+Fetch and follow instructions from https://raw.githubusercontent.com/mathpluscode/bibtools/main/.codex/INSTALL.md
+```
+
 ## bibtidy
 
-```
-/bibtidy refs.bib
+```text
+Use bibtidy to validate and fix refs.bib
 ```
 
-bibtidy verifies each entry against [Google Scholar](https://scholar.google.com/) and [CrossRef](https://search.crossref.org/), fixes errors, and upgrades stale preprints to published versions. Every change includes the original entry commented out above so you can compare or revert, plus a `% bibtidy:` URL for verification. We recommend using git to track changes. If using [Overleaf](https://www.overleaf.com/), this can be done with [git sync](https://docs.overleaf.com/integrations-and-add-ons/git-integration-and-github-synchronization). To remove bibtidy comments after review, ask Claude: "remove all bibtidy comments from refs.bib".
+Or in Claude Code, use the slash command: `/bibtidy refs.bib`
+
+bibtidy verifies each entry against [Google Scholar](https://scholar.google.com/) and [CrossRef](https://search.crossref.org/), fixes errors, and upgrades stale preprints to published versions. Every change includes the original entry commented out above so you can compare or revert, plus one or more `% bibtidy:` URL lines for verification. We recommend using git to track changes. If using [Overleaf](https://www.overleaf.com/), this can be done with [git sync](https://docs.overleaf.com/integrations-and-add-ons/git-integration-and-github-synchronization). To remove bibtidy comments after review, ask your agent to remove all `bibtidy` comments from the file.
 
 Note that bibtidy assumes standard brace-style BibTeX like `@article{...}`. Parenthesized forms like `@article(...)` are not supported; convert them to brace style first.
 
@@ -294,15 +308,15 @@ After:
 
 ### General
 
-**Do I need Claude Code?**
+**Do I need a paid subscription?**
 
-Yes. bibtools is currently a Claude Code plugin only. If there's demand to support other platforms (e.g. Codex), we'll consider adding it.
+Claude Code requires a paid plan (there is no free tier). Codex offers a free tier, so you can use bibtools with Codex at no cost.
 
-**Why a Claude Code plugin instead of a Python package?**
+**Why an agent skill/plugin instead of a Python package?**
 
-Building on Claude Code keeps the codebase small, the plugin reuses existing search and editing capabilities rather than reimplementing HTTP clients, parsers, and retry logic.
+Building on agent-native search and editing keeps the codebase small. The skill/plugin reuses existing web, editing, and subagent capabilities rather than reimplementing HTTP clients, parsers, and retry logic.
 
-bibtidy needs to search Google Scholar, CrossRef, and conference/journal sites. Google Scholar has no official API and bans scrapers; Semantic Scholar's public API (1,000 req/s) is shared globally so availability is unpredictable. Claude Code's built-in web search sidesteps both problems, no API keys, no shared rate limits. Citation metadata (title, authors, venue, year) is almost never behind a paywall, so Claude can simply visit the publisher page and read the correct information.
+bibtidy needs to search Google Scholar, CrossRef, and conference/journal sites. Google Scholar has no official API and bans scrapers; Semantic Scholar's public API (1,000 req/s) is shared globally so availability is unpredictable. Agent environments with built-in web access sidestep both problems, no API keys, no shared rate limits. Citation metadata (title, authors, venue, year) is almost never behind a paywall, so the agent can simply visit the publisher page and read the correct information.
 
 ### bibtidy
 
@@ -314,7 +328,7 @@ You shouldn't, and that's by design. The point of bibtidy is to surface potentia
 
 [CiteAudit](https://arxiv.org/abs/2602.23452) verifies bibliographic metadata but is a closed system. bibtidy is fully open-source, transparent (every change includes the original entry commented out and a source URL so you can verify exactly what changed and why), and it fixes issues (wrong authors, stale preprints, incorrect pages) directly in your .bib file rather than just flagging them.
 
-[refchecker](https://github.com/markrussinovich/refchecker) verifies references against Semantic Scholar, OpenAlex, and CrossRef, and uses LLM-powered web search to flag fabricated references. It reports problems but does not auto-fix them. bibtidy applies corrections in place so you review a diff, not a report. bibtidy also upgrades stale arXiv/bioRxiv preprints to their published versions (even when the title changed on publication), and requires no setup beyond installing the plugin.
+[refchecker](https://github.com/markrussinovich/refchecker) verifies references against Semantic Scholar, OpenAlex, and CrossRef, and uses LLM-powered web search to flag fabricated references. It reports problems but does not auto-fix them. bibtidy applies corrections in place so you review a diff, not a report. bibtidy also upgrades stale arXiv/bioRxiv preprints to their published versions (even when the title changed on publication), and requires no setup beyond installing the skill.
 
 [bibtex-tidy](https://github.com/FlamingTempura/bibtex-tidy) reformats and deduplicates .bib files but does not verify metadata against external sources. bibtidy checks correctness, not just formatting.
 

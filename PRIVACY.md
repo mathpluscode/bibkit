@@ -1,12 +1,12 @@
 # Privacy Policy
 
-**bibtools** is a Claude Code plugin — a bibliography toolkit for LaTeX. It does not collect, store, or transmit any personal data.
+**bibtools** is a bibliography toolkit for LaTeX, built as agent skills. It does not collect, store, or transmit any personal data.
 
 ## What bibtools does
 
 - Reads and edits `.bib` files on your local machine
 - Sends bibliographic metadata (paper titles, author names) to public APIs (CrossRef, Google Scholar) to verify reference accuracy
-- All processing happens locally within your Claude Code session
+- All processing happens locally within your agent session
 
 ## What bibtools does NOT do
 

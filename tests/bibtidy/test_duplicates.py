@@ -8,7 +8,7 @@ import sys
 
 import pytest
 
-from duplicates import find_duplicates, is_preprint, normalize_title, parse_bib_entries
+from duplicates import find_duplicates, normalize_title, parse_bib_entries
 
 TOOL_PATH = os.path.join(os.path.dirname(__file__), "..", "..", "skills", "bibtidy", "tools", "duplicates.py")
 
@@ -114,39 +114,6 @@ class TestSameTitle:
         assert len([d for d in _run(bib) if d["type"] == "same_title"]) == 1
 
 
-class TestPreprintPublished:
-    def test_arxiv_and_journal(self):
-        bib = """
-@article{ArxivVer, title={Attention Is All You Need}, journal={arXiv preprint arXiv:1706.03762}}
-@article{PublishedVer, title={Attention Is All You Need}, journal={Advances in Neural Information Processing Systems}}
-"""
-        pp = [d for d in _run(bib) if d["type"] == "preprint_published"]
-        assert len(pp) == 1
-        assert pp[0]["key1"] == "ArxivVer"
-        assert pp[0]["key2"] == "PublishedVer"
-
-    def test_biorxiv(self):
-        bib = """
-@article{Pre, title={Protein Folding}, journal={bioRxiv}}
-@article{Pub, title={Protein Folding}, journal={Nature}}
-"""
-        assert len([d for d in _run(bib) if d["type"] == "preprint_published"]) == 1
-
-    def test_chemrxiv(self):
-        bib = """
-@article{Pre, title={Novel Catalyst}, journal={ChemRxiv}}
-@article{Pub, title={Novel Catalyst}, journal={JACS}}
-"""
-        assert len([d for d in _run(bib) if d["type"] == "preprint_published"]) == 1
-
-    def test_medrxiv(self):
-        bib = """
-@article{Pre, title={Clinical Trial Results}, journal={medRxiv}}
-@article{Pub, title={Clinical Trial Results}, journal={The Lancet}}
-"""
-        assert len([d for d in _run(bib) if d["type"] == "preprint_published"]) == 1
-
-
 class TestBraceOnlySyntax:
     def test_parenthesized_entry_rejected(self):
         bib = "@article(Smith2020, title={Hello}, year={2020})"
@@ -220,36 +187,6 @@ class TestLatexNormalization:
 @article{B, title={Caf\\'{e} au lait}, author={Dupont, Jean}, journal={J1}}
 """
         assert len([d for d in _run(bib) if d["type"] == "same_title"]) == 1
-
-
-class TestExpandedPreprintDetection:
-    def test_eprint_field(self):
-        entry = {"key": "X", "eprint": "2301.12345", "archiveprefix": "arXiv"}
-        assert is_preprint(entry) is True
-
-    def test_eprint_numeric_only(self):
-        entry = {"key": "X", "eprint": "2301.12345"}
-        assert is_preprint(entry) is True
-
-    def test_note_field(self):
-        entry = {"key": "X", "note": "arXiv preprint arXiv:2301.12345"}
-        assert is_preprint(entry) is True
-
-    def test_howpublished_field(self):
-        entry = {"key": "X", "howpublished": "bioRxiv"}
-        assert is_preprint(entry) is True
-
-    def test_medrxiv_journal(self):
-        entry = {"key": "X", "journal": "medRxiv"}
-        assert is_preprint(entry) is True
-
-    def test_archiveprefix_alone(self):
-        entry = {"key": "X", "archiveprefix": "arXiv"}
-        assert is_preprint(entry) is True
-
-    def test_not_preprint(self):
-        entry = {"key": "X", "journal": "Nature"}
-        assert is_preprint(entry) is False
 
 
 class TestSkipSpecialBlocks:

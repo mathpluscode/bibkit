@@ -2,8 +2,8 @@
 """Validate bibtidy output against expected structural properties.
 
 Usage:
-    # After running: claude -p "/bibtidy tests/fixtures/got.bib"
-    python3 tests/validate.py tests/fixtures/got.bib
+    # After running one of the end-to-end test scripts
+    python3 tests/validate.py tests/bibtidy/fixtures/got_cc.bib
 """
 
 import re

@@ -107,7 +107,7 @@ def compare_entry(entry: dict, crossref: dict) -> list[dict]:
             # The authors they both list don't agree (wrong names or order)
             _add("author", bib_author, " and ".join(cr_authors))
         elif len(bib_names) != len(cr_names):
-            # One side has more authors than the other — let Claude decide
+            # One side has more authors than the other — let the agent decide
             _add("author", bib_author, " and ".join(cr_authors))
 
     # Year

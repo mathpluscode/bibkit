@@ -79,7 +79,7 @@ class TestAuthors:
         assert any(m["field"] == "author" for m in ms)
 
     def test_bib_has_others(self):
-        """'and others' with full list available should be flagged for Claude to decide."""
+        """'and others' with full list available should be flagged for agent review."""
         entry = {"key": "X", "author": "Smith, John and others"}
         cr = {"authors": ["Smith, John", "Doe, Jane", "Lee, Bob"]}
         ms = compare_entry(entry, cr)
@@ -93,7 +93,7 @@ class TestAuthors:
         assert any(m["field"] == "author" for m in ms)
 
     def test_bib_has_more_authors_than_crossref(self):
-        """Bib with more authors than CrossRef should be flagged for Claude to decide."""
+        """Bib with more authors than CrossRef should be flagged for agent review."""
         entry = {"key": "X", "author": "Smith, John and Doe, Jane and Lee, Bob"}
         cr = {"authors": ["Smith, John", "Doe, Jane"]}
         ms = compare_entry(entry, cr)
@@ -275,7 +275,7 @@ class TestEntryType:
 
 class TestBootitleVsJournal:
     def test_booktitle_field_preserved(self):
-        """Venue mismatch for @inproceedings should use 'booktitle' so Claude edits the right field."""
+        """Venue mismatch for @inproceedings should use 'booktitle' so the agent edits the right field."""
         entry = {
             "key": "X",
             "entry_type": "inproceedings",
@@ -288,7 +288,7 @@ class TestBootitleVsJournal:
             assert m["field"] == "booktitle", "Should use 'booktitle' not 'journal'"
 
     def test_journal_field_preserved(self):
-        """Venue mismatch for @article should use 'journal' so Claude edits the right field."""
+        """Venue mismatch for @article should use 'journal' so the agent edits the right field."""
         entry = {"key": "X", "entry_type": "article", "journal": "arXiv preprint arXiv:2210.02747"}
         cr = {"journal": "Nature"}
         ms = compare_entry(entry, cr)
