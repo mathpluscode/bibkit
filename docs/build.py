@@ -149,6 +149,16 @@ def linkify(s: str) -> str:
     )
 
 
+def render_diff_row(typ: str, line: str) -> str:
+    prefix = {"ctx": "&nbsp;", "del": "-", "add": "+"}[typ]
+    return (
+        f'      <tr class="diff-row {typ}">'
+        f'<td class="diff-gutter">{prefix}</td>'
+        f'<td class="diff-content">{linkify(line)}</td>'
+        f"</tr>"
+    )
+
+
 def render_diff_card(
     title: str, badge_class: str, badge_label: str, bibtidy_comments: list[str], diff: list[tuple[str, str]]
 ) -> str:
@@ -171,13 +181,14 @@ def render_diff_card(
     parts.append(f'    <span class="diff-badge {badge_class}">{badge_label}</span>')
     parts.append("  </div>")
     parts.append('  <div class="diff-body">')
+    parts.append('    <table class="diff-table"><tbody>')
     # bibtidy comments as added lines
     for comment in bibtidy_comments:
-        parts.append(f'    <div class="diff-line add">+{linkify(comment)}</div>')
+        parts.append(render_diff_row("add", comment))
     # diff lines
     for typ, line in diff:
-        prefix = {"ctx": " ", "del": "-", "add": "+"}[typ]
-        parts.append(f'    <div class="diff-line {typ}">{prefix}{linkify(line)}</div>')
+        parts.append(render_diff_row(typ, line))
+    parts.append("    </tbody></table>")
     parts.append("  </div>")
     parts.append("</div>")
     return "\n".join(parts)
@@ -220,8 +231,6 @@ def build_html(cards_html: str) -> str:
     --badge-ok-bg: #f6f8fa;
     --badge-ok-text: #656d76;
     --badge-ok-border: #d0d7de;
-    --tab-active: #0969da;
-    --tab-hover: #f6f8fa;
   }}
 
   @media (prefers-color-scheme: dark) {{
@@ -253,12 +262,15 @@ def build_html(cards_html: str) -> str:
       --badge-ok-bg: #30363d;
       --badge-ok-text: #8b949e;
       --badge-ok-border: #30363d;
-      --tab-active: #58a6ff;
-      --tab-hover: #161b22;
     }}
   }}
 
   * {{ margin: 0; padding: 0; box-sizing: border-box; }}
+
+  html {{
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+  }}
 
   body {{
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
@@ -292,32 +304,10 @@ def build_html(cards_html: str) -> str:
 
   .container {{ max-width: 960px; margin: 0 auto; padding: 0 1rem 2rem; }}
 
-  .tabs {{
-    display: flex;
-    border-bottom: 1px solid var(--border);
-    margin-bottom: 2rem;
-  }}
-
-  .tab {{
-    padding: 0.75rem 1.25rem;
-    font-size: 0.9rem;
-    font-weight: 500;
+  .intro {{
     color: var(--text-muted);
-    cursor: pointer;
-    border-bottom: 2px solid transparent;
-    margin-bottom: -1px;
-    background: none;
-    border-top: none;
-    border-left: none;
-    border-right: none;
-    font-family: inherit;
+    margin: 2rem 0 1.5rem;
   }}
-
-  .tab:hover {{ color: var(--text); background: var(--tab-hover); }}
-  .tab.active {{ color: var(--tab-active); border-bottom-color: var(--tab-active); }}
-
-  .tab-content {{ display: none; }}
-  .tab-content.active {{ display: block; }}
 
   .section-title {{
     font-size: 1.25rem;
@@ -329,7 +319,13 @@ def build_html(cards_html: str) -> str:
 
   .section {{ margin-bottom: 2.5rem; }}
 
-  .demo img {{ max-width: 100%; border-radius: 6px; border: 1px solid var(--border); }}
+  .demo img {{
+    display: block;
+    max-width: 100%;
+    height: auto;
+    border-radius: 6px;
+    border: 1px solid var(--border);
+  }}
 
   .install-step {{ margin-bottom: 1rem; }}
   .install-step p {{ color: var(--text-muted); font-size: 0.9rem; margin-bottom: 0.4rem; }}
@@ -339,14 +335,23 @@ def build_html(cards_html: str) -> str:
     border: 1px solid var(--border);
     border-radius: 6px;
     padding: 0.75rem 1rem;
-    font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+    font-family: ui-monospace, 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
     font-size: 0.85rem;
     display: flex;
     align-items: center;
     justify-content: space-between;
+    gap: 0.75rem;
+    overflow: hidden;
   }}
 
-  .code-block code {{ flex: 1; user-select: all; overflow-x: auto; }}
+  .code-block code {{
+    flex: 1;
+    min-width: 0;
+    display: block;
+    user-select: all;
+    white-space: pre;
+    overflow-x: auto;
+  }}
 
   .copy-btn {{
     background: none;
@@ -357,7 +362,6 @@ def build_html(cards_html: str) -> str:
     padding: 0.2rem 0.4rem;
     font-size: 0.75rem;
     font-family: inherit;
-    margin-left: 0.75rem;
     flex-shrink: 0;
   }}
 
@@ -376,17 +380,25 @@ def build_html(cards_html: str) -> str:
     border-bottom: 1px solid var(--border);
     display: flex;
     align-items: center;
+    flex-wrap: wrap;
     gap: 0.5rem;
   }}
 
-  .diff-title {{ font-weight: 600; font-size: 0.9rem; }}
+  .diff-title {{
+    flex: 1 1 18rem;
+    min-width: 0;
+    font-weight: 600;
+    font-size: 0.9rem;
+    overflow-wrap: anywhere;
+  }}
+
+  .diff-title a {{ overflow-wrap: anywhere; }}
 
   .diff-badge {{
     font-size: 0.75rem;
     padding: 0.1rem 0.5rem;
     border-radius: 0.5rem;
     font-weight: 500;
-    margin-left: auto;
   }}
 
   .badge-fix {{ background: var(--badge-fix-bg); color: var(--badge-fix-text); border: 1px solid var(--badge-fix-border); }}
@@ -396,23 +408,40 @@ def build_html(cards_html: str) -> str:
   .badge-ok {{ background: var(--badge-ok-bg); color: var(--badge-ok-text); border: 1px solid var(--badge-ok-border); }}
 
   .diff-body {{
-    font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
-    font-size: 0.8rem;
-    line-height: 1.7;
     overflow-x: auto;
   }}
 
-  .diff-hunk {{
-    background: var(--hunk-bg);
-    color: var(--hunk-text);
-    padding: 0.25rem 1rem;
-    font-size: 0.75rem;
+  .diff-table {{
+    width: max-content;
+    min-width: 100%;
+    border-collapse: collapse;
+    font-family: ui-monospace, 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+    font-size: 0.8rem;
+    line-height: 1.7;
+    -webkit-text-size-adjust: none;
+    text-size-adjust: none;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
   }}
 
-  .diff-line {{ padding: 0 1rem; white-space: pre; display: block; min-width: fit-content; }}
-  .diff-line.del {{ background: var(--del-bg); color: var(--del-line); }}
-  .diff-line.add {{ background: var(--add-bg); color: var(--add-line); }}
-  .diff-line.ctx {{ color: var(--text-muted); }}
+  .diff-gutter,
+  .diff-content {{
+    white-space: pre;
+    vertical-align: top;
+  }}
+
+  .diff-gutter {{
+    width: 2.5rem;
+    padding: 0 0.75rem 0 1rem;
+    user-select: none;
+    color: var(--text-muted);
+  }}
+
+  .diff-content {{ padding: 0 1rem 0 0; }}
+
+  .diff-row.del {{ background: var(--del-bg); color: var(--del-line); }}
+  .diff-row.add {{ background: var(--add-bg); color: var(--add-line); }}
+  .diff-row.ctx {{ color: var(--text-muted); }}
 
   .stats {{ font-size: 0.8rem; color: var(--text-muted); margin-left: 0.5rem; }}
   .stats .add-count {{ color: var(--add-line); }}
@@ -435,18 +464,11 @@ def build_html(cards_html: str) -> str:
 </div>
 
 <div class="container">
-
-<div class="tabs">
-  <button class="tab active" onclick="switchTab('bibtidy')">bibtidy</button>
-</div>
-
-<div id="tab-bibtidy" class="tab-content active">
-
-<p style="color: var(--text-muted); margin-bottom: 1.5rem;">bibtidy cross-checks BibTeX entries against Google Scholar, CrossRef, and conference/journal sites. It upgrades arXiv/bioRxiv preprints to published versions (even when the title changed upon publication), corrects metadata (authors, pages, venues), and flags duplicate entries.</p>
+<p class="intro">bibtidy cross-checks BibTeX entries against Google Scholar, CrossRef, and conference/journal sites. It upgrades arXiv/bioRxiv preprints to published versions (even when the title changed upon publication), corrects metadata (authors, pages, venues), and flags duplicate entries.</p>
 
 <div class="section">
   <div class="demo">
-    <img src="bibtidy_demo.gif" alt="bibtidy demo">
+    <img src="bibtidy_demo.gif" alt="bibtidy demo" width="1600" height="1200">
   </div>
 </div>
 
@@ -457,24 +479,24 @@ def build_html(cards_html: str) -> str:
 
   <div class="install-step">
     <p>Add the marketplace source:</p>
-    <div class="code-block"><code>/plugin marketplace add mathpluscode/bibtools</code><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+    <div class="code-block"><code>/plugin marketplace add mathpluscode/bibtools</code><button class="copy-btn" type="button" onclick="copyCode(this)">Copy</button></div>
   </div>
 
   <div class="install-step">
     <p>Install the plugin:</p>
-    <div class="code-block"><code>/plugin install bibtools@mathpluscode-bibtools</code><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+    <div class="code-block"><code>/plugin install bibtools@mathpluscode-bibtools</code><button class="copy-btn" type="button" onclick="copyCode(this)">Copy</button></div>
   </div>
 
   <div class="install-step">
     <p>Reload plugins:</p>
-    <div class="code-block"><code>/reload-plugins</code><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+    <div class="code-block"><code>/reload-plugins</code><button class="copy-btn" type="button" onclick="copyCode(this)">Copy</button></div>
   </div>
 
   <h3 style="font-size: 1rem; font-weight: 600; margin: 1.5rem 0 0.75rem;">Codex</h3>
 
   <div class="install-step">
     <p>Tell Codex to fetch and follow the install instructions:</p>
-    <div class="code-block"><code>Fetch and follow instructions from https://raw.githubusercontent.com/mathpluscode/bibtools/main/.codex/INSTALL.md</code><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+    <div class="code-block"><code>Fetch and follow instructions from https://raw.githubusercontent.com/mathpluscode/bibtools/main/.codex/INSTALL.md</code><button class="copy-btn" type="button" onclick="copyCode(this)">Copy</button></div>
   </div>
 
 </div>
@@ -488,22 +510,16 @@ def build_html(cards_html: str) -> str:
 
 </div>
 
-</div>
-
 <script>
 function copyCode(btn) {{
   const code = btn.previousElementSibling.textContent;
   navigator.clipboard.writeText(code).then(() => {{
     btn.textContent = 'Copied!';
     setTimeout(() => btn.textContent = 'Copy', 1500);
+  }}).catch(() => {{
+    btn.textContent = 'Copy failed';
+    setTimeout(() => btn.textContent = 'Copy', 1500);
   }});
-}}
-
-function switchTab(name) {{
-  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-  document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
-  document.querySelector(`[onclick="switchTab('${{name}}')"]`).classList.add('active');
-  document.getElementById(`tab-${{name}}`).classList.add('active');
 }}
 </script>
 

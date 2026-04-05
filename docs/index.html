@@ -33,8 +33,6 @@
     --badge-ok-bg: #f6f8fa;
     --badge-ok-text: #656d76;
     --badge-ok-border: #d0d7de;
-    --tab-active: #0969da;
-    --tab-hover: #f6f8fa;
   }
 
   @media (prefers-color-scheme: dark) {
@@ -66,12 +64,15 @@
       --badge-ok-bg: #30363d;
       --badge-ok-text: #8b949e;
       --badge-ok-border: #30363d;
-      --tab-active: #58a6ff;
-      --tab-hover: #161b22;
     }
   }
 
   * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  html {
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+  }
 
   body {
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
@@ -105,32 +106,10 @@
 
   .container { max-width: 960px; margin: 0 auto; padding: 0 1rem 2rem; }
 
-  .tabs {
-    display: flex;
-    border-bottom: 1px solid var(--border);
-    margin-bottom: 2rem;
-  }
-
-  .tab {
-    padding: 0.75rem 1.25rem;
-    font-size: 0.9rem;
-    font-weight: 500;
+  .intro {
     color: var(--text-muted);
-    cursor: pointer;
-    border-bottom: 2px solid transparent;
-    margin-bottom: -1px;
-    background: none;
-    border-top: none;
-    border-left: none;
-    border-right: none;
-    font-family: inherit;
+    margin: 2rem 0 1.5rem;
   }
-
-  .tab:hover { color: var(--text); background: var(--tab-hover); }
-  .tab.active { color: var(--tab-active); border-bottom-color: var(--tab-active); }
-
-  .tab-content { display: none; }
-  .tab-content.active { display: block; }
 
   .section-title {
     font-size: 1.25rem;
@@ -142,7 +121,13 @@
 
   .section { margin-bottom: 2.5rem; }
 
-  .demo img { max-width: 100%; border-radius: 6px; border: 1px solid var(--border); }
+  .demo img {
+    display: block;
+    max-width: 100%;
+    height: auto;
+    border-radius: 6px;
+    border: 1px solid var(--border);
+  }
 
   .install-step { margin-bottom: 1rem; }
   .install-step p { color: var(--text-muted); font-size: 0.9rem; margin-bottom: 0.4rem; }
@@ -152,14 +137,23 @@
     border: 1px solid var(--border);
     border-radius: 6px;
     padding: 0.75rem 1rem;
-    font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+    font-family: ui-monospace, 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
     font-size: 0.85rem;
     display: flex;
     align-items: center;
     justify-content: space-between;
+    gap: 0.75rem;
+    overflow: hidden;
   }
 
-  .code-block code { flex: 1; user-select: all; overflow-x: auto; }
+  .code-block code {
+    flex: 1;
+    min-width: 0;
+    display: block;
+    user-select: all;
+    white-space: pre;
+    overflow-x: auto;
+  }
 
   .copy-btn {
     background: none;
@@ -170,7 +164,6 @@
     padding: 0.2rem 0.4rem;
     font-size: 0.75rem;
     font-family: inherit;
-    margin-left: 0.75rem;
     flex-shrink: 0;
   }
 
@@ -189,17 +182,25 @@
     border-bottom: 1px solid var(--border);
     display: flex;
     align-items: center;
+    flex-wrap: wrap;
     gap: 0.5rem;
   }
 
-  .diff-title { font-weight: 600; font-size: 0.9rem; }
+  .diff-title {
+    flex: 1 1 18rem;
+    min-width: 0;
+    font-weight: 600;
+    font-size: 0.9rem;
+    overflow-wrap: anywhere;
+  }
+
+  .diff-title a { overflow-wrap: anywhere; }
 
   .diff-badge {
     font-size: 0.75rem;
     padding: 0.1rem 0.5rem;
     border-radius: 0.5rem;
     font-weight: 500;
-    margin-left: auto;
   }
 
   .badge-fix { background: var(--badge-fix-bg); color: var(--badge-fix-text); border: 1px solid var(--badge-fix-border); }
@@ -209,23 +210,40 @@
   .badge-ok { background: var(--badge-ok-bg); color: var(--badge-ok-text); border: 1px solid var(--badge-ok-border); }
 
   .diff-body {
-    font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
-    font-size: 0.8rem;
-    line-height: 1.7;
     overflow-x: auto;
   }
 
-  .diff-hunk {
-    background: var(--hunk-bg);
-    color: var(--hunk-text);
-    padding: 0.25rem 1rem;
-    font-size: 0.75rem;
+  .diff-table {
+    width: max-content;
+    min-width: 100%;
+    border-collapse: collapse;
+    font-family: ui-monospace, 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+    font-size: 0.8rem;
+    line-height: 1.7;
+    -webkit-text-size-adjust: none;
+    text-size-adjust: none;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
   }
 
-  .diff-line { padding: 0 1rem; white-space: pre; display: block; min-width: fit-content; }
-  .diff-line.del { background: var(--del-bg); color: var(--del-line); }
-  .diff-line.add { background: var(--add-bg); color: var(--add-line); }
-  .diff-line.ctx { color: var(--text-muted); }
+  .diff-gutter,
+  .diff-content {
+    white-space: pre;
+    vertical-align: top;
+  }
+
+  .diff-gutter {
+    width: 2.5rem;
+    padding: 0 0.75rem 0 1rem;
+    user-select: none;
+    color: var(--text-muted);
+  }
+
+  .diff-content { padding: 0 1rem 0 0; }
+
+  .diff-row.del { background: var(--del-bg); color: var(--del-line); }
+  .diff-row.add { background: var(--add-bg); color: var(--add-line); }
+  .diff-row.ctx { color: var(--text-muted); }
 
   .stats { font-size: 0.8rem; color: var(--text-muted); margin-left: 0.5rem; }
   .stats .add-count { color: var(--add-line); }
@@ -248,18 +266,11 @@
 </div>
 
 <div class="container">
-
-<div class="tabs">
-  <button class="tab active" onclick="switchTab('bibtidy')">bibtidy</button>
-</div>
-
-<div id="tab-bibtidy" class="tab-content active">
-
-<p style="color: var(--text-muted); margin-bottom: 1.5rem;">bibtidy cross-checks BibTeX entries against Google Scholar, CrossRef, and conference/journal sites. It upgrades arXiv/bioRxiv preprints to published versions (even when the title changed upon publication), corrects metadata (authors, pages, venues), and flags duplicate entries.</p>
+<p class="intro">bibtidy cross-checks BibTeX entries against Google Scholar, CrossRef, and conference/journal sites. It upgrades arXiv/bioRxiv preprints to published versions (even when the title changed upon publication), corrects metadata (authors, pages, venues), and flags duplicate entries.</p>
 
 <div class="section">
   <div class="demo">
-    <img src="bibtidy_demo.gif" alt="bibtidy demo">
+    <img src="bibtidy_demo.gif" alt="bibtidy demo" width="1600" height="1200">
   </div>
 </div>
 
@@ -270,24 +281,24 @@
 
   <div class="install-step">
     <p>Add the marketplace source:</p>
-    <div class="code-block"><code>/plugin marketplace add mathpluscode/bibtools</code><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+    <div class="code-block"><code>/plugin marketplace add mathpluscode/bibtools</code><button class="copy-btn" type="button" onclick="copyCode(this)">Copy</button></div>
   </div>
 
   <div class="install-step">
     <p>Install the plugin:</p>
-    <div class="code-block"><code>/plugin install bibtools@mathpluscode-bibtools</code><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+    <div class="code-block"><code>/plugin install bibtools@mathpluscode-bibtools</code><button class="copy-btn" type="button" onclick="copyCode(this)">Copy</button></div>
   </div>
 
   <div class="install-step">
     <p>Reload plugins:</p>
-    <div class="code-block"><code>/reload-plugins</code><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+    <div class="code-block"><code>/reload-plugins</code><button class="copy-btn" type="button" onclick="copyCode(this)">Copy</button></div>
   </div>
 
   <h3 style="font-size: 1rem; font-weight: 600; margin: 1.5rem 0 0.75rem;">Codex</h3>
 
   <div class="install-step">
     <p>Tell Codex to fetch and follow the install instructions:</p>
-    <div class="code-block"><code>Fetch and follow instructions from https://raw.githubusercontent.com/mathpluscode/bibtools/main/.codex/INSTALL.md</code><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+    <div class="code-block"><code>Fetch and follow instructions from https://raw.githubusercontent.com/mathpluscode/bibtools/main/.codex/INSTALL.md</code><button class="copy-btn" type="button" onclick="copyCode(this)">Copy</button></div>
   </div>
 
 </div>
@@ -302,13 +313,15 @@
     <span class="diff-badge badge-notfound">not found</span>
   </div>
   <div class="diff-body">
-    <div class="diff-line add">+% bibtidy: NOT FOUND — no matching paper on CrossRef or web search; verify this reference exists</div>
-    <div class="diff-line del">-@article{wang2021identity,</div>
-    <div class="diff-line del">-  title={On the identity of the representation learned by pre-trained language models},</div>
-    <div class="diff-line del">-  author={Wang, Zijie J and Choi, Yuhao and Wei, Dongyeop},</div>
-    <div class="diff-line del">-  journal={arXiv preprint arXiv:2109.01819},</div>
-    <div class="diff-line del">-  year={2021}</div>
-    <div class="diff-line del">-}</div>
+    <table class="diff-table"><tbody>
+      <tr class="diff-row add"><td class="diff-gutter">+</td><td class="diff-content">% bibtidy: NOT FOUND — no matching paper on CrossRef or web search; verify this reference exists</td></tr>
+      <tr class="diff-row del"><td class="diff-gutter">-</td><td class="diff-content">@article{wang2021identity,</td></tr>
+      <tr class="diff-row del"><td class="diff-gutter">-</td><td class="diff-content">  title={On the identity of the representation learned by pre-trained language models},</td></tr>
+      <tr class="diff-row del"><td class="diff-gutter">-</td><td class="diff-content">  author={Wang, Zijie J and Choi, Yuhao and Wei, Dongyeop},</td></tr>
+      <tr class="diff-row del"><td class="diff-gutter">-</td><td class="diff-content">  journal={arXiv preprint arXiv:2109.01819},</td></tr>
+      <tr class="diff-row del"><td class="diff-gutter">-</td><td class="diff-content">  year={2021}</td></tr>
+      <tr class="diff-row del"><td class="diff-gutter">-</td><td class="diff-content">}</td></tr>
+    </tbody></table>
   </div>
 </div>
 
@@ -319,16 +332,18 @@
     <span class="diff-badge badge-fix">fix</span>
   </div>
   <div class="diff-body">
-    <div class="diff-line add">+% bibtidy: <a href="https://openreview.net/forum?id=HSi4VetQLj" target="_blank" rel="noopener" style="color:inherit;text-decoration:underline">https://openreview.net/forum?id=HSi4VetQLj</a></div>
-    <div class="diff-line add">+% bibtidy: corrected title and authors</div>
-    <div class="diff-line ctx"> @inproceedings{aichberger2025semantically,</div>
-    <div class="diff-line del">-  title={Semantically Diverse Language Generation},</div>
-    <div class="diff-line del">-  author={Aichberger, Franz and Chen, Lily and Smith, John},</div>
-    <div class="diff-line add">+  title={Improving Uncertainty Estimation through Semantically Diverse Language Generation},</div>
-    <div class="diff-line add">+  author={Aichberger, Lukas and Schweighofer, Kajetan and Ielanskyi, Mykyta and Hochreiter, Sepp},</div>
-    <div class="diff-line ctx">   booktitle={International Conference on Learning Representations},</div>
-    <div class="diff-line ctx">   year={2025}</div>
-    <div class="diff-line ctx"> }</div>
+    <table class="diff-table"><tbody>
+      <tr class="diff-row add"><td class="diff-gutter">+</td><td class="diff-content">% bibtidy: <a href="https://openreview.net/forum?id=HSi4VetQLj" target="_blank" rel="noopener" style="color:inherit;text-decoration:underline">https://openreview.net/forum?id=HSi4VetQLj</a></td></tr>
+      <tr class="diff-row add"><td class="diff-gutter">+</td><td class="diff-content">% bibtidy: corrected title and authors</td></tr>
+      <tr class="diff-row ctx"><td class="diff-gutter">&nbsp;</td><td class="diff-content">@inproceedings{aichberger2025semantically,</td></tr>
+      <tr class="diff-row del"><td class="diff-gutter">-</td><td class="diff-content">  title={Semantically Diverse Language Generation},</td></tr>
+      <tr class="diff-row del"><td class="diff-gutter">-</td><td class="diff-content">  author={Aichberger, Franz and Chen, Lily and Smith, John},</td></tr>
+      <tr class="diff-row add"><td class="diff-gutter">+</td><td class="diff-content">  title={Improving Uncertainty Estimation through Semantically Diverse Language Generation},</td></tr>
+      <tr class="diff-row add"><td class="diff-gutter">+</td><td class="diff-content">  author={Aichberger, Lukas and Schweighofer, Kajetan and Ielanskyi, Mykyta and Hochreiter, Sepp},</td></tr>
+      <tr class="diff-row ctx"><td class="diff-gutter">&nbsp;</td><td class="diff-content">  booktitle={International Conference on Learning Representations},</td></tr>
+      <tr class="diff-row ctx"><td class="diff-gutter">&nbsp;</td><td class="diff-content">  year={2025}</td></tr>
+      <tr class="diff-row ctx"><td class="diff-gutter">&nbsp;</td><td class="diff-content">}</td></tr>
+    </tbody></table>
   </div>
 </div>
 
@@ -339,19 +354,21 @@
     <span class="diff-badge badge-fix">author fix</span>
   </div>
   <div class="diff-body">
-    <div class="diff-line add">+% bibtidy: <a href="https://jmlr.org/papers/v6/hyvarinen05a.html" target="_blank" rel="noopener" style="color:inherit;text-decoration:underline">https://jmlr.org/papers/v6/hyvarinen05a.html</a></div>
-    <div class="diff-line add">+% bibtidy: removed &quot;Dayan, Peter&quot; — journal editor, not co-author; number 4 → 24</div>
-    <div class="diff-line ctx"> @article{hyvarinen2005estimation,</div>
-    <div class="diff-line del">-  title={Estimation of non-normalized statistical models by score matching.},</div>
-    <div class="diff-line del">-  author={Hyv{\&quot;a}rinen, Aapo and Dayan, Peter},</div>
-    <div class="diff-line add">+  title={Estimation of non-normalized statistical models by score matching},</div>
-    <div class="diff-line add">+  author={Hyv{\&quot;a}rinen, Aapo},</div>
-    <div class="diff-line ctx">   journal={Journal of Machine Learning Research},</div>
-    <div class="diff-line ctx">   volume={6},</div>
-    <div class="diff-line del">-  number={4},</div>
-    <div class="diff-line add">+  number={24},</div>
-    <div class="diff-line ctx">   year={2005}</div>
-    <div class="diff-line ctx"> }</div>
+    <table class="diff-table"><tbody>
+      <tr class="diff-row add"><td class="diff-gutter">+</td><td class="diff-content">% bibtidy: <a href="https://jmlr.org/papers/v6/hyvarinen05a.html" target="_blank" rel="noopener" style="color:inherit;text-decoration:underline">https://jmlr.org/papers/v6/hyvarinen05a.html</a></td></tr>
+      <tr class="diff-row add"><td class="diff-gutter">+</td><td class="diff-content">% bibtidy: removed &quot;Dayan, Peter&quot; — journal editor, not co-author; number 4 → 24</td></tr>
+      <tr class="diff-row ctx"><td class="diff-gutter">&nbsp;</td><td class="diff-content">@article{hyvarinen2005estimation,</td></tr>
+      <tr class="diff-row del"><td class="diff-gutter">-</td><td class="diff-content">  title={Estimation of non-normalized statistical models by score matching.},</td></tr>
+      <tr class="diff-row del"><td class="diff-gutter">-</td><td class="diff-content">  author={Hyv{\&quot;a}rinen, Aapo and Dayan, Peter},</td></tr>
+      <tr class="diff-row add"><td class="diff-gutter">+</td><td class="diff-content">  title={Estimation of non-normalized statistical models by score matching},</td></tr>
+      <tr class="diff-row add"><td class="diff-gutter">+</td><td class="diff-content">  author={Hyv{\&quot;a}rinen, Aapo},</td></tr>
+      <tr class="diff-row ctx"><td class="diff-gutter">&nbsp;</td><td class="diff-content">  journal={Journal of Machine Learning Research},</td></tr>
+      <tr class="diff-row ctx"><td class="diff-gutter">&nbsp;</td><td class="diff-content">  volume={6},</td></tr>
+      <tr class="diff-row del"><td class="diff-gutter">-</td><td class="diff-content">  number={4},</td></tr>
+      <tr class="diff-row add"><td class="diff-gutter">+</td><td class="diff-content">  number={24},</td></tr>
+      <tr class="diff-row ctx"><td class="diff-gutter">&nbsp;</td><td class="diff-content">  year={2005}</td></tr>
+      <tr class="diff-row ctx"><td class="diff-gutter">&nbsp;</td><td class="diff-content">}</td></tr>
+    </tbody></table>
   </div>
 </div>
 
@@ -362,17 +379,19 @@
     <span class="diff-badge badge-upgrade">preprint &#8594; published</span>
   </div>
   <div class="diff-body">
-    <div class="diff-line add">+% bibtidy: <a href="https://openreview.net/forum?id=PqvMRDCJT9t" target="_blank" rel="noopener" style="color:inherit;text-decoration:underline">https://openreview.net/forum?id=PqvMRDCJT9t</a></div>
-    <div class="diff-line add">+% bibtidy: published at ICLR 2023 (was arXiv preprint)</div>
-    <div class="diff-line del">-@article{lipman2022flow,</div>
-    <div class="diff-line add">+@inproceedings{lipman2022flow,</div>
-    <div class="diff-line ctx">   title={Flow matching for generative modeling},</div>
-    <div class="diff-line ctx">   author={Lipman, Yaron and Chen, Ricky TQ and Ben-Hamu, Heli and Nickel, Maximilian and Le, Matt},</div>
-    <div class="diff-line del">-  journal={arXiv preprint arXiv:2210.02747},</div>
-    <div class="diff-line del">-  year={2022}</div>
-    <div class="diff-line add">+  booktitle={International Conference on Learning Representations},</div>
-    <div class="diff-line add">+  year={2023}</div>
-    <div class="diff-line ctx"> }</div>
+    <table class="diff-table"><tbody>
+      <tr class="diff-row add"><td class="diff-gutter">+</td><td class="diff-content">% bibtidy: <a href="https://openreview.net/forum?id=PqvMRDCJT9t" target="_blank" rel="noopener" style="color:inherit;text-decoration:underline">https://openreview.net/forum?id=PqvMRDCJT9t</a></td></tr>
+      <tr class="diff-row add"><td class="diff-gutter">+</td><td class="diff-content">% bibtidy: published at ICLR 2023 (was arXiv preprint)</td></tr>
+      <tr class="diff-row del"><td class="diff-gutter">-</td><td class="diff-content">@article{lipman2022flow,</td></tr>
+      <tr class="diff-row add"><td class="diff-gutter">+</td><td class="diff-content">@inproceedings{lipman2022flow,</td></tr>
+      <tr class="diff-row ctx"><td class="diff-gutter">&nbsp;</td><td class="diff-content">  title={Flow matching for generative modeling},</td></tr>
+      <tr class="diff-row ctx"><td class="diff-gutter">&nbsp;</td><td class="diff-content">  author={Lipman, Yaron and Chen, Ricky TQ and Ben-Hamu, Heli and Nickel, Maximilian and Le, Matt},</td></tr>
+      <tr class="diff-row del"><td class="diff-gutter">-</td><td class="diff-content">  journal={arXiv preprint arXiv:2210.02747},</td></tr>
+      <tr class="diff-row del"><td class="diff-gutter">-</td><td class="diff-content">  year={2022}</td></tr>
+      <tr class="diff-row add"><td class="diff-gutter">+</td><td class="diff-content">  booktitle={International Conference on Learning Representations},</td></tr>
+      <tr class="diff-row add"><td class="diff-gutter">+</td><td class="diff-content">  year={2023}</td></tr>
+      <tr class="diff-row ctx"><td class="diff-gutter">&nbsp;</td><td class="diff-content">}</td></tr>
+    </tbody></table>
   </div>
 </div>
 
@@ -383,19 +402,21 @@
     <span class="diff-badge badge-fix">formatting fix</span>
   </div>
   <div class="diff-body">
-    <div class="diff-line add">+% bibtidy: <a href="https://doi.org/10.48550/arXiv.2006.11239" target="_blank" rel="noopener" style="color:inherit;text-decoration:underline">https://doi.org/10.48550/arXiv.2006.11239</a></div>
-    <div class="diff-line add">+% bibtidy: stripped DOI URL prefix, fixed page range hyphen</div>
-    <div class="diff-line ctx"> @article{ho2020denoising,</div>
-    <div class="diff-line ctx">   title={Denoising diffusion probabilistic models},</div>
-    <div class="diff-line ctx">   author={Ho, Jonathan and Jain, Ajay and Abbeel, Pieter},</div>
-    <div class="diff-line ctx">   journal={Advances in Neural Information Processing Systems},</div>
-    <div class="diff-line ctx">   volume={33},</div>
-    <div class="diff-line del">-  pages={6840-6851},</div>
-    <div class="diff-line add">+  pages={6840--6851},</div>
-    <div class="diff-line ctx">   year={2020},</div>
-    <div class="diff-line del">-  doi={<a href="https://doi.org/10.48550/arXiv.2006.11239" target="_blank" rel="noopener" style="color:inherit;text-decoration:underline">https://doi.org/10.48550/arXiv.2006.11239</a>}</div>
-    <div class="diff-line add">+  doi={10.48550/arXiv.2006.11239}</div>
-    <div class="diff-line ctx"> }</div>
+    <table class="diff-table"><tbody>
+      <tr class="diff-row add"><td class="diff-gutter">+</td><td class="diff-content">% bibtidy: <a href="https://doi.org/10.48550/arXiv.2006.11239" target="_blank" rel="noopener" style="color:inherit;text-decoration:underline">https://doi.org/10.48550/arXiv.2006.11239</a></td></tr>
+      <tr class="diff-row add"><td class="diff-gutter">+</td><td class="diff-content">% bibtidy: stripped DOI URL prefix, fixed page range hyphen</td></tr>
+      <tr class="diff-row ctx"><td class="diff-gutter">&nbsp;</td><td class="diff-content">@article{ho2020denoising,</td></tr>
+      <tr class="diff-row ctx"><td class="diff-gutter">&nbsp;</td><td class="diff-content">  title={Denoising diffusion probabilistic models},</td></tr>
+      <tr class="diff-row ctx"><td class="diff-gutter">&nbsp;</td><td class="diff-content">  author={Ho, Jonathan and Jain, Ajay and Abbeel, Pieter},</td></tr>
+      <tr class="diff-row ctx"><td class="diff-gutter">&nbsp;</td><td class="diff-content">  journal={Advances in Neural Information Processing Systems},</td></tr>
+      <tr class="diff-row ctx"><td class="diff-gutter">&nbsp;</td><td class="diff-content">  volume={33},</td></tr>
+      <tr class="diff-row del"><td class="diff-gutter">-</td><td class="diff-content">  pages={6840-6851},</td></tr>
+      <tr class="diff-row add"><td class="diff-gutter">+</td><td class="diff-content">  pages={6840--6851},</td></tr>
+      <tr class="diff-row ctx"><td class="diff-gutter">&nbsp;</td><td class="diff-content">  year={2020},</td></tr>
+      <tr class="diff-row del"><td class="diff-gutter">-</td><td class="diff-content">  doi={<a href="https://doi.org/10.48550/arXiv.2006.11239" target="_blank" rel="noopener" style="color:inherit;text-decoration:underline">https://doi.org/10.48550/arXiv.2006.11239</a>}</td></tr>
+      <tr class="diff-row add"><td class="diff-gutter">+</td><td class="diff-content">  doi={10.48550/arXiv.2006.11239}</td></tr>
+      <tr class="diff-row ctx"><td class="diff-gutter">&nbsp;</td><td class="diff-content">}</td></tr>
+    </tbody></table>
   </div>
 </div>
 
@@ -406,28 +427,30 @@
     <span class="diff-badge badge-duplicate">duplicate detected</span>
   </div>
   <div class="diff-body">
-    <div class="diff-line add">+% bibtidy: DUPLICATE of watson2023novo — consider removing</div>
-    <div class="diff-line ctx"> @article{watson2022broadly,</div>
-    <div class="diff-line ctx">   title={Broadly applicable and accurate protein design by integrating structure prediction networks and diffusion generative models},</div>
-    <div class="diff-line ctx">   author={Watson, Joseph L and Juergens, David and Bennett, Nathaniel R and Trippe, Brian L and Yim, Jason and Eisenach, Helen E and Ahern, Woody and Borst, Andrew J and Ragotte, Robert J and Milles, Lukas F and others},</div>
-    <div class="diff-line ctx">   journal={BioRxiv},</div>
-    <div class="diff-line ctx">   pages={2022--12},</div>
-    <div class="diff-line ctx">   year={2022},</div>
-    <div class="diff-line ctx">   publisher={Cold Spring Harbor Laboratory}</div>
-    <div class="diff-line ctx"> }</div>
-    <div class="diff-line ctx"> </div>
-    <div class="diff-line ctx"> @article{watson2023novo,</div>
-    <div class="diff-line ctx">   title={De novo design of protein structure and function with RFdiffusion},</div>
-    <div class="diff-line del">-  author={Watson, Joseph L and Juergens, David and Bennett, Nathaniel R and Trippe, Brian L and Yim, Jason and Eisenach, Helen E and Ahern, Woody and Borst, Andrew J and Ragotte, Robert J and Milles, Lukas F and others},</div>
-    <div class="diff-line add">+  author={Watson, Joseph L. and Juergens, David and Bennett, Nathaniel R. and Trippe, Brian L. and Yim, Jason and Eisenach, Helen E. and Ahern, Woody and Borst, Andrew J. and Ragotte, Robert J. and Milles, Lukas F. and Wicky, Basile I. M. and Hanikel, Nikita and Pellock, Samuel J. and Courbet, Alexis and Sheffler, William and Wang, Jue and Venkatesh, Preetham and Sappington, Isaac and Torres, Susana Vázquez and Lauko, Anna and De Bortoli, Valentin and Mathieu, Emile and Ovchinnikov, Sergey and Barzilay, Regina and Jaakkola, Tommi S. and DiMaio, Frank and Baek, Minkyung and Baker, David},</div>
-    <div class="diff-line ctx">   journal={Nature},</div>
-    <div class="diff-line ctx">   volume={620},</div>
-    <div class="diff-line ctx">   pages={1089--1100},</div>
-    <div class="diff-line ctx">   year={2023},</div>
-    <div class="diff-line del">-  publisher={Nature Publishing Group UK London}</div>
-    <div class="diff-line add">+  publisher={Nature Publishing Group UK London},</div>
-    <div class="diff-line add">+  number={7976}</div>
-    <div class="diff-line ctx"> }</div>
+    <table class="diff-table"><tbody>
+      <tr class="diff-row add"><td class="diff-gutter">+</td><td class="diff-content">% bibtidy: DUPLICATE of watson2023novo — consider removing</td></tr>
+      <tr class="diff-row ctx"><td class="diff-gutter">&nbsp;</td><td class="diff-content">@article{watson2022broadly,</td></tr>
+      <tr class="diff-row ctx"><td class="diff-gutter">&nbsp;</td><td class="diff-content">  title={Broadly applicable and accurate protein design by integrating structure prediction networks and diffusion generative models},</td></tr>
+      <tr class="diff-row ctx"><td class="diff-gutter">&nbsp;</td><td class="diff-content">  author={Watson, Joseph L and Juergens, David and Bennett, Nathaniel R and Trippe, Brian L and Yim, Jason and Eisenach, Helen E and Ahern, Woody and Borst, Andrew J and Ragotte, Robert J and Milles, Lukas F and others},</td></tr>
+      <tr class="diff-row ctx"><td class="diff-gutter">&nbsp;</td><td class="diff-content">  journal={BioRxiv},</td></tr>
+      <tr class="diff-row ctx"><td class="diff-gutter">&nbsp;</td><td class="diff-content">  pages={2022--12},</td></tr>
+      <tr class="diff-row ctx"><td class="diff-gutter">&nbsp;</td><td class="diff-content">  year={2022},</td></tr>
+      <tr class="diff-row ctx"><td class="diff-gutter">&nbsp;</td><td class="diff-content">  publisher={Cold Spring Harbor Laboratory}</td></tr>
+      <tr class="diff-row ctx"><td class="diff-gutter">&nbsp;</td><td class="diff-content">}</td></tr>
+      <tr class="diff-row ctx"><td class="diff-gutter">&nbsp;</td><td class="diff-content"></td></tr>
+      <tr class="diff-row ctx"><td class="diff-gutter">&nbsp;</td><td class="diff-content">@article{watson2023novo,</td></tr>
+      <tr class="diff-row ctx"><td class="diff-gutter">&nbsp;</td><td class="diff-content">  title={De novo design of protein structure and function with RFdiffusion},</td></tr>
+      <tr class="diff-row del"><td class="diff-gutter">-</td><td class="diff-content">  author={Watson, Joseph L and Juergens, David and Bennett, Nathaniel R and Trippe, Brian L and Yim, Jason and Eisenach, Helen E and Ahern, Woody and Borst, Andrew J and Ragotte, Robert J and Milles, Lukas F and others},</td></tr>
+      <tr class="diff-row add"><td class="diff-gutter">+</td><td class="diff-content">  author={Watson, Joseph L. and Juergens, David and Bennett, Nathaniel R. and Trippe, Brian L. and Yim, Jason and Eisenach, Helen E. and Ahern, Woody and Borst, Andrew J. and Ragotte, Robert J. and Milles, Lukas F. and Wicky, Basile I. M. and Hanikel, Nikita and Pellock, Samuel J. and Courbet, Alexis and Sheffler, William and Wang, Jue and Venkatesh, Preetham and Sappington, Isaac and Torres, Susana Vázquez and Lauko, Anna and De Bortoli, Valentin and Mathieu, Emile and Ovchinnikov, Sergey and Barzilay, Regina and Jaakkola, Tommi S. and DiMaio, Frank and Baek, Minkyung and Baker, David},</td></tr>
+      <tr class="diff-row ctx"><td class="diff-gutter">&nbsp;</td><td class="diff-content">  journal={Nature},</td></tr>
+      <tr class="diff-row ctx"><td class="diff-gutter">&nbsp;</td><td class="diff-content">  volume={620},</td></tr>
+      <tr class="diff-row ctx"><td class="diff-gutter">&nbsp;</td><td class="diff-content">  pages={1089--1100},</td></tr>
+      <tr class="diff-row ctx"><td class="diff-gutter">&nbsp;</td><td class="diff-content">  year={2023},</td></tr>
+      <tr class="diff-row del"><td class="diff-gutter">-</td><td class="diff-content">  publisher={Nature Publishing Group UK London}</td></tr>
+      <tr class="diff-row add"><td class="diff-gutter">+</td><td class="diff-content">  publisher={Nature Publishing Group UK London},</td></tr>
+      <tr class="diff-row add"><td class="diff-gutter">+</td><td class="diff-content">  number={7976}</td></tr>
+      <tr class="diff-row ctx"><td class="diff-gutter">&nbsp;</td><td class="diff-content">}</td></tr>
+    </tbody></table>
   </div>
 </div>
 
@@ -438,16 +461,18 @@
     <span class="diff-badge badge-fix">page fix</span>
   </div>
   <div class="diff-body">
-    <div class="diff-line add">+% bibtidy: <a href="https://doi.org/10.1109/iccv48922.2021.00717" target="_blank" rel="noopener" style="color:inherit;text-decoration:underline">https://doi.org/10.1109/iccv48922.2021.00717</a></div>
-    <div class="diff-line add">+% bibtidy: corrected page range 7262--7272 → 7242--7252</div>
-    <div class="diff-line ctx"> @inproceedings{strudel2021segmenter,</div>
-    <div class="diff-line ctx">   title={Segmenter: Transformer for semantic segmentation},</div>
-    <div class="diff-line ctx">   author={Strudel, Robin and Garcia, Ricardo and Laptev, Ivan and Schmid, Cordelia},</div>
-    <div class="diff-line ctx">   booktitle={Proceedings of the IEEE/CVF international conference on computer vision},</div>
-    <div class="diff-line del">-  pages={7262--7272},</div>
-    <div class="diff-line add">+  pages={7242--7252},</div>
-    <div class="diff-line ctx">   year={2021}</div>
-    <div class="diff-line ctx"> }</div>
+    <table class="diff-table"><tbody>
+      <tr class="diff-row add"><td class="diff-gutter">+</td><td class="diff-content">% bibtidy: <a href="https://doi.org/10.1109/iccv48922.2021.00717" target="_blank" rel="noopener" style="color:inherit;text-decoration:underline">https://doi.org/10.1109/iccv48922.2021.00717</a></td></tr>
+      <tr class="diff-row add"><td class="diff-gutter">+</td><td class="diff-content">% bibtidy: corrected page range 7262--7272 → 7242--7252</td></tr>
+      <tr class="diff-row ctx"><td class="diff-gutter">&nbsp;</td><td class="diff-content">@inproceedings{strudel2021segmenter,</td></tr>
+      <tr class="diff-row ctx"><td class="diff-gutter">&nbsp;</td><td class="diff-content">  title={Segmenter: Transformer for semantic segmentation},</td></tr>
+      <tr class="diff-row ctx"><td class="diff-gutter">&nbsp;</td><td class="diff-content">  author={Strudel, Robin and Garcia, Ricardo and Laptev, Ivan and Schmid, Cordelia},</td></tr>
+      <tr class="diff-row ctx"><td class="diff-gutter">&nbsp;</td><td class="diff-content">  booktitle={Proceedings of the IEEE/CVF international conference on computer vision},</td></tr>
+      <tr class="diff-row del"><td class="diff-gutter">-</td><td class="diff-content">  pages={7262--7272},</td></tr>
+      <tr class="diff-row add"><td class="diff-gutter">+</td><td class="diff-content">  pages={7242--7252},</td></tr>
+      <tr class="diff-row ctx"><td class="diff-gutter">&nbsp;</td><td class="diff-content">  year={2021}</td></tr>
+      <tr class="diff-row ctx"><td class="diff-gutter">&nbsp;</td><td class="diff-content">}</td></tr>
+    </tbody></table>
   </div>
 </div>
 
@@ -458,18 +483,20 @@
     <span class="diff-badge badge-upgrade">preprint &#8594; published</span>
   </div>
   <div class="diff-body">
-    <div class="diff-line add">+% bibtidy: <a href="https://doi.org/10.1038/s41598-023-34341-2" target="_blank" rel="noopener" style="color:inherit;text-decoration:underline">https://doi.org/10.1038/s41598-023-34341-2</a></div>
-    <div class="diff-line add">+% bibtidy: updated from arXiv to published version (Scientific Reports 2023), title updated</div>
-    <div class="diff-line ctx"> @article{khader2022medical,</div>
-    <div class="diff-line del">-  title={Medical Diffusion--Denoising Diffusion Probabilistic Models for 3D Medical Image Generation},</div>
-    <div class="diff-line add">+  title={Denoising Diffusion Probabilistic Models for 3D Medical Image Generation},</div>
-    <div class="diff-line ctx">   author={Khader, Firas and Mueller-Franzes, Gustav and Arasteh, Soroosh Tayebi and Han, Tianyu and Haarburger, Christoph and Schulze-Hagen, Maximilian and Schad, Philipp and Engelhardt, Sandy and Baessler, Bettina and Foersch, Sebastian and others},</div>
-    <div class="diff-line del">-  journal={arXiv preprint arXiv:2211.03364},</div>
-    <div class="diff-line del">-  year={2022}</div>
-    <div class="diff-line add">+  journal={Scientific Reports},</div>
-    <div class="diff-line add">+  volume={13},</div>
-    <div class="diff-line add">+  year={2023}</div>
-    <div class="diff-line ctx"> }</div>
+    <table class="diff-table"><tbody>
+      <tr class="diff-row add"><td class="diff-gutter">+</td><td class="diff-content">% bibtidy: <a href="https://doi.org/10.1038/s41598-023-34341-2" target="_blank" rel="noopener" style="color:inherit;text-decoration:underline">https://doi.org/10.1038/s41598-023-34341-2</a></td></tr>
+      <tr class="diff-row add"><td class="diff-gutter">+</td><td class="diff-content">% bibtidy: updated from arXiv to published version (Scientific Reports 2023), title updated</td></tr>
+      <tr class="diff-row ctx"><td class="diff-gutter">&nbsp;</td><td class="diff-content">@article{khader2022medical,</td></tr>
+      <tr class="diff-row del"><td class="diff-gutter">-</td><td class="diff-content">  title={Medical Diffusion--Denoising Diffusion Probabilistic Models for 3D Medical Image Generation},</td></tr>
+      <tr class="diff-row add"><td class="diff-gutter">+</td><td class="diff-content">  title={Denoising Diffusion Probabilistic Models for 3D Medical Image Generation},</td></tr>
+      <tr class="diff-row ctx"><td class="diff-gutter">&nbsp;</td><td class="diff-content">  author={Khader, Firas and Mueller-Franzes, Gustav and Arasteh, Soroosh Tayebi and Han, Tianyu and Haarburger, Christoph and Schulze-Hagen, Maximilian and Schad, Philipp and Engelhardt, Sandy and Baessler, Bettina and Foersch, Sebastian and others},</td></tr>
+      <tr class="diff-row del"><td class="diff-gutter">-</td><td class="diff-content">  journal={arXiv preprint arXiv:2211.03364},</td></tr>
+      <tr class="diff-row del"><td class="diff-gutter">-</td><td class="diff-content">  year={2022}</td></tr>
+      <tr class="diff-row add"><td class="diff-gutter">+</td><td class="diff-content">  journal={Scientific Reports},</td></tr>
+      <tr class="diff-row add"><td class="diff-gutter">+</td><td class="diff-content">  volume={13},</td></tr>
+      <tr class="diff-row add"><td class="diff-gutter">+</td><td class="diff-content">  year={2023}</td></tr>
+      <tr class="diff-row ctx"><td class="diff-gutter">&nbsp;</td><td class="diff-content">}</td></tr>
+    </tbody></table>
   </div>
 </div>
 
@@ -480,17 +507,19 @@
     <span class="diff-badge badge-fix">fix</span>
   </div>
   <div class="diff-body">
-    <div class="diff-line add">+% bibtidy: <a href="https://doi.org/10.1109/ICCV51070.2023.00371" target="_blank" rel="noopener" style="color:inherit;text-decoration:underline">https://doi.org/10.1109/ICCV51070.2023.00371</a></div>
-    <div class="diff-line add">+% bibtidy: expanded author list from &quot;and others&quot; to full list</div>
-    <div class="diff-line ctx"> @inproceedings{kirillov2023segment,</div>
-    <div class="diff-line ctx">   title={Segment anything},</div>
-    <div class="diff-line del">-  author={Kirillov, Alexander and Mintun, Eric and Ravi, Nikhila and Mao, Hanzi and Rolland, Chloe and Gustafson, Laura and Xiao, Tete and Whitehead, Spencer and Berg, Alexander C and Lo, Wan-Yen and others},</div>
-    <div class="diff-line add">+  author={Kirillov, Alexander and Mintun, Eric and Ravi, Nikhila and Mao, Hanzi and Rolland, Chloe and Gustafson, Laura and Xiao, Tete and Whitehead, Spencer and Berg, Alexander C and Lo, Wan-Yen and Doll{\'a}r, Piotr and Girshick, Ross},</div>
-    <div class="diff-line ctx">   booktitle={Proceedings of the IEEE/CVF International Conference on Computer Vision},</div>
-    <div class="diff-line ctx">   pages={3992--4003},</div>
-    <div class="diff-line ctx">   year={2023},</div>
-    <div class="diff-line ctx">   doi={10.1109/ICCV51070.2023.00371}</div>
-    <div class="diff-line ctx"> }</div>
+    <table class="diff-table"><tbody>
+      <tr class="diff-row add"><td class="diff-gutter">+</td><td class="diff-content">% bibtidy: <a href="https://doi.org/10.1109/ICCV51070.2023.00371" target="_blank" rel="noopener" style="color:inherit;text-decoration:underline">https://doi.org/10.1109/ICCV51070.2023.00371</a></td></tr>
+      <tr class="diff-row add"><td class="diff-gutter">+</td><td class="diff-content">% bibtidy: expanded author list from &quot;and others&quot; to full list</td></tr>
+      <tr class="diff-row ctx"><td class="diff-gutter">&nbsp;</td><td class="diff-content">@inproceedings{kirillov2023segment,</td></tr>
+      <tr class="diff-row ctx"><td class="diff-gutter">&nbsp;</td><td class="diff-content">  title={Segment anything},</td></tr>
+      <tr class="diff-row del"><td class="diff-gutter">-</td><td class="diff-content">  author={Kirillov, Alexander and Mintun, Eric and Ravi, Nikhila and Mao, Hanzi and Rolland, Chloe and Gustafson, Laura and Xiao, Tete and Whitehead, Spencer and Berg, Alexander C and Lo, Wan-Yen and others},</td></tr>
+      <tr class="diff-row add"><td class="diff-gutter">+</td><td class="diff-content">  author={Kirillov, Alexander and Mintun, Eric and Ravi, Nikhila and Mao, Hanzi and Rolland, Chloe and Gustafson, Laura and Xiao, Tete and Whitehead, Spencer and Berg, Alexander C and Lo, Wan-Yen and Doll{\'a}r, Piotr and Girshick, Ross},</td></tr>
+      <tr class="diff-row ctx"><td class="diff-gutter">&nbsp;</td><td class="diff-content">  booktitle={Proceedings of the IEEE/CVF International Conference on Computer Vision},</td></tr>
+      <tr class="diff-row ctx"><td class="diff-gutter">&nbsp;</td><td class="diff-content">  pages={3992--4003},</td></tr>
+      <tr class="diff-row ctx"><td class="diff-gutter">&nbsp;</td><td class="diff-content">  year={2023},</td></tr>
+      <tr class="diff-row ctx"><td class="diff-gutter">&nbsp;</td><td class="diff-content">  doi={10.1109/ICCV51070.2023.00371}</td></tr>
+      <tr class="diff-row ctx"><td class="diff-gutter">&nbsp;</td><td class="diff-content">}</td></tr>
+    </tbody></table>
   </div>
 </div>
 
@@ -500,13 +529,15 @@
     <span class="diff-badge badge-ok">unchanged</span>
   </div>
   <div class="diff-body">
-    <div class="diff-line ctx"> @inproceedings{vaswani2017attention,</div>
-    <div class="diff-line ctx">   title={Attention is All you Need},</div>
-    <div class="diff-line ctx">   author={Vaswani, Ashish and Shazeer, Noam and Parmar, Niki and Uszkoreit, Jakob and Jones, Llion and Gomez, Aidan N and Kaiser, {\L}ukasz and Polosukhin, Illia},</div>
-    <div class="diff-line ctx">   booktitle={Advances in Neural Information Processing Systems},</div>
-    <div class="diff-line ctx">   volume={30},</div>
-    <div class="diff-line ctx">   year={2017}</div>
-    <div class="diff-line ctx"> }</div>
+    <table class="diff-table"><tbody>
+      <tr class="diff-row ctx"><td class="diff-gutter">&nbsp;</td><td class="diff-content">@inproceedings{vaswani2017attention,</td></tr>
+      <tr class="diff-row ctx"><td class="diff-gutter">&nbsp;</td><td class="diff-content">  title={Attention is All you Need},</td></tr>
+      <tr class="diff-row ctx"><td class="diff-gutter">&nbsp;</td><td class="diff-content">  author={Vaswani, Ashish and Shazeer, Noam and Parmar, Niki and Uszkoreit, Jakob and Jones, Llion and Gomez, Aidan N and Kaiser, {\L}ukasz and Polosukhin, Illia},</td></tr>
+      <tr class="diff-row ctx"><td class="diff-gutter">&nbsp;</td><td class="diff-content">  booktitle={Advances in Neural Information Processing Systems},</td></tr>
+      <tr class="diff-row ctx"><td class="diff-gutter">&nbsp;</td><td class="diff-content">  volume={30},</td></tr>
+      <tr class="diff-row ctx"><td class="diff-gutter">&nbsp;</td><td class="diff-content">  year={2017}</td></tr>
+      <tr class="diff-row ctx"><td class="diff-gutter">&nbsp;</td><td class="diff-content">}</td></tr>
+    </tbody></table>
   </div>
 </div>
 
@@ -516,19 +547,19 @@
     <span class="diff-badge badge-ok">unchanged</span>
   </div>
   <div class="diff-body">
-    <div class="diff-line ctx"> @article{tzou2022coronavirus,</div>
-    <div class="diff-line ctx">   title={Coronavirus Resistance Database (CoV-RDB): SARS-CoV-2 susceptibility to monoclonal antibodies, convalescent plasma, and plasma from vaccinated persons},</div>
-    <div class="diff-line ctx">   author={Tzou, Philip L and Tao, Kaiming and Pond, Sergei L Kosakovsky and Shafer, Robert W},</div>
-    <div class="diff-line ctx">   journal={Plos one},</div>
-    <div class="diff-line ctx">   volume={17},</div>
-    <div class="diff-line ctx">   number={3},</div>
-    <div class="diff-line ctx">   pages={e0261045},</div>
-    <div class="diff-line ctx">   year={2022},</div>
-    <div class="diff-line ctx">   publisher={Public Library of Science San Francisco, CA USA}</div>
-    <div class="diff-line ctx"> }</div>
+    <table class="diff-table"><tbody>
+      <tr class="diff-row ctx"><td class="diff-gutter">&nbsp;</td><td class="diff-content">@article{tzou2022coronavirus,</td></tr>
+      <tr class="diff-row ctx"><td class="diff-gutter">&nbsp;</td><td class="diff-content">  title={Coronavirus Resistance Database (CoV-RDB): SARS-CoV-2 susceptibility to monoclonal antibodies, convalescent plasma, and plasma from vaccinated persons},</td></tr>
+      <tr class="diff-row ctx"><td class="diff-gutter">&nbsp;</td><td class="diff-content">  author={Tzou, Philip L and Tao, Kaiming and Pond, Sergei L Kosakovsky and Shafer, Robert W},</td></tr>
+      <tr class="diff-row ctx"><td class="diff-gutter">&nbsp;</td><td class="diff-content">  journal={Plos one},</td></tr>
+      <tr class="diff-row ctx"><td class="diff-gutter">&nbsp;</td><td class="diff-content">  volume={17},</td></tr>
+      <tr class="diff-row ctx"><td class="diff-gutter">&nbsp;</td><td class="diff-content">  number={3},</td></tr>
+      <tr class="diff-row ctx"><td class="diff-gutter">&nbsp;</td><td class="diff-content">  pages={e0261045},</td></tr>
+      <tr class="diff-row ctx"><td class="diff-gutter">&nbsp;</td><td class="diff-content">  year={2022},</td></tr>
+      <tr class="diff-row ctx"><td class="diff-gutter">&nbsp;</td><td class="diff-content">  publisher={Public Library of Science San Francisco, CA USA}</td></tr>
+      <tr class="diff-row ctx"><td class="diff-gutter">&nbsp;</td><td class="diff-content">}</td></tr>
+    </tbody></table>
   </div>
-</div>
-
 </div>
 
 </div>
@@ -541,14 +572,10 @@ function copyCode(btn) {
   navigator.clipboard.writeText(code).then(() => {
     btn.textContent = 'Copied!';
     setTimeout(() => btn.textContent = 'Copy', 1500);
+  }).catch(() => {
+    btn.textContent = 'Copy failed';
+    setTimeout(() => btn.textContent = 'Copy', 1500);
   });
-}
-
-function switchTab(name) {
-  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-  document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
-  document.querySelector(`[onclick="switchTab('${name}')"]`).classList.add('active');
-  document.getElementById(`tab-${name}`).classList.add('active');
 }
 </script>
 
