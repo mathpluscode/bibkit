@@ -8,7 +8,8 @@ import sys
 
 import pytest
 
-from duplicates import find_duplicates, normalize_title, parse_bib_entries
+from duplicates import find_duplicates, normalize_title, remove_exact_duplicates
+from parser import parse_bib_entries
 
 TOOL_PATH = os.path.join(os.path.dirname(__file__), "..", "..", "skills", "bibtidy", "tools", "duplicates.py")
 
@@ -151,6 +152,13 @@ class TestNoDuplicates:
 @article{A, title={Alpha}, doi={10.1/a}, journal={J1}}
 @article{B, title={Beta},  doi={10.1/b}, journal={J2}}
 @article{C, title={Gamma}, doi={10.1/c}, journal={J3}}
+        """
+        assert _run(bib) == []
+
+    def test_same_authors_preprint_and_published_without_shared_title_not_duplicate(self):
+        bib = """
+@article{Alpha2022, title={Diffusion models for protein design}, author={Smith, John and Doe, Jane and others}, journal={bioRxiv}, year={2022}}
+@article{Alpha2023, title={Language models for code generation}, author={Smith, John and Doe, Jane and others}, journal={Nature}, year={2023}}
 """
         assert _run(bib) == []
 
@@ -253,8 +261,30 @@ class TestQuotedValues:
         bib = """
 @article{C1, title = {Deep} # { Learning}, author={Doe, Jane}, journal={J}}
 @article{C2, title = {Deep Learning}, author={Doe, Jane}, journal={J}}
-"""
+        """
         assert len([d for d in _run(bib) if d["type"] == "same_title"]) == 1
+
+    def test_preprint_published_pair_with_changed_title_detected(self):
+        bib = """
+@article{watson2022broadly,
+  title={Broadly applicable and accurate protein design by integrating structure prediction networks and diffusion generative models},
+  author={Watson, Joseph L and Juergens, David and Bennett, Nathaniel R and Trippe, Brian L and Yim, Jason and Eisenach, Helen E and Ahern, Woody and Borst, Andrew J and Ragotte, Robert J and Milles, Lukas F and others},
+  journal={BioRxiv},
+  pages={2022--12},
+  year={2022}
+}
+
+@article{watson2023novo,
+  title={De novo design of protein structure and function with RFdiffusion},
+  author={Watson, Joseph L and Juergens, David and Bennett, Nathaniel R and Trippe, Brian L and Yim, Jason and Eisenach, Helen E and Ahern, Woody and Borst, Andrew J and Ragotte, Robert J and Milles, Lukas F and others},
+  journal={Nature},
+  volume={620},
+  pages={1089--1100},
+  year={2023}
+}
+"""
+        dups = _run(bib)
+        assert [d for d in dups if d["type"] == "preprint_published"]
 
 
 class TestCommentedOutEntries:
@@ -337,3 +367,127 @@ class TestEscapedBraces:
 @article{B, title={A different paper}, author={Smith, John}, journal={J2}}
 """
         assert _run(bib) == []
+
+
+class TestExactDuplicates:
+    def test_identical_entries(self):
+        bib = "\n".join(
+            [
+                "@article{Smith2020,",
+                "  title={Deep Learning},",
+                "  author={Smith, John},",
+                "  year={2020},",
+                "}",
+                "",
+                "@article{Smith2020,",
+                "  title={Deep Learning},",
+                "  author={Smith, John},",
+                "  year={2020},",
+                "}",
+            ]
+        )
+        _, count = remove_exact_duplicates(bib)
+        assert count == 1
+
+    def test_whitespace_differences_are_exact(self):
+        """Extra whitespace should not prevent exact match."""
+        bib = "\n".join(
+            [
+                "@article{A, title={Deep  Learning}, author={Smith, John}, year={2020}}",
+                "@article{A, title={Deep Learning}, author={Smith, John}, year={2020}}",
+            ]
+        )
+        _, count = remove_exact_duplicates(bib)
+        assert count == 1
+
+    def test_different_fields_not_exact(self):
+        bib = "\n".join(
+            [
+                "@article{A, title={Paper One}, author={Smith, John}, year={2020}}",
+                "@article{A, title={Paper One}, author={Smith, John}, year={2021}}",
+            ]
+        )
+        _, count = remove_exact_duplicates(bib)
+        assert count == 0
+
+    def test_different_type_not_exact(self):
+        bib = "\n".join(
+            [
+                "@article{A, title={Paper}, author={Smith, John}, year={2020}}",
+                "@inproceedings{A, title={Paper}, author={Smith, John}, year={2020}}",
+            ]
+        )
+        _, count = remove_exact_duplicates(bib)
+        assert count == 0
+
+    def test_different_key_not_exact(self):
+        bib = "\n".join(
+            [
+                "@article{A, title={Paper}, author={Smith, John}, year={2020}}",
+                "@article{B, title={Paper}, author={Smith, John}, year={2020}}",
+            ]
+        )
+        _, count = remove_exact_duplicates(bib)
+        assert count == 0
+
+    def test_three_identical_keeps_first(self):
+        bib = "\n".join(
+            [
+                "@article{X, title={Same}, year={2020}}",
+                "@article{X, title={Same}, year={2020}}",
+                "@article{X, title={Same}, year={2020}}",
+            ]
+        )
+        _, count = remove_exact_duplicates(bib)
+        assert count == 2
+
+    def test_no_entries(self):
+        _, count = remove_exact_duplicates("")
+        assert count == 0
+
+
+class TestRemoveExactDuplicates:
+    def test_comments_out_duplicate(self):
+        bib = "@article{A,\n  title={Paper},\n  year={2020}\n}\n\n@article{A,\n  title={Paper},\n  year={2020}\n}\n"
+        result, count = remove_exact_duplicates(bib)
+        assert count == 1
+        assert "% bibtidy: exact duplicate, commented out" in result
+        assert result.count("% @article{A,") == 1
+        # First entry still present uncommented
+        entries = parse_bib_entries(result)
+        assert len(entries) == 1
+
+    def test_no_duplicates_unchanged(self):
+        bib = "@article{A, title={One}, year={2020}}\n@article{B, title={Two}, year={2021}}\n"
+        result, count = remove_exact_duplicates(bib)
+        assert count == 0
+        assert result == bib
+
+    def test_rejects_parenthesized_entry(self):
+        bib = "@article(ParenKey, title={Same}, year={2020})\n"
+        with pytest.raises(ValueError, match="not supported"):
+            remove_exact_duplicates(bib)
+
+    def test_cli_remove_exact(self, tmp_path):
+        bib_file = tmp_path / "test.bib"
+        bib_file.write_text(
+            "@article{A,\n  title={Paper},\n  year={2020}\n}\n\n@article{A,\n  title={Paper},\n  year={2020}\n}\n"
+        )
+        result = subprocess.run([sys.executable, TOOL_PATH, str(bib_file), "--exact"], capture_output=True, text=True)
+        assert result.returncode == 0
+        assert "Removed 1" in result.stdout
+        content = bib_file.read_text()
+        assert "% bibtidy: exact duplicate" in content
+
+    def test_cli_remove_exact_parenthesized_entry_rejected_without_rewrite(self, tmp_path):
+        bib_file = tmp_path / "test.bib"
+        original = (
+            "@article{A,\n  title={Paper},\n  year={2020}\n}\n\n"
+            "@article{A,\n  title={Paper},\n  year={2020}\n}\n\n"
+            "@article(ParenKey, title={Same}, year={2020})\n"
+        )
+        bib_file.write_text(original)
+        result = subprocess.run([sys.executable, TOOL_PATH, str(bib_file), "--exact"], capture_output=True, text=True)
+        assert result.returncode == 1
+        assert "not supported" in result.stderr
+        assert bib_file.read_text() == original

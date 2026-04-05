@@ -1,14 +1,8 @@
 """Unit tests for edit.py."""
 
-from edit import (
-    _build_entry,
-    _comment_out,
-    _compute_field_order,
-    _extract_field_order,
-    apply_patch,
-    apply_patches,
-    find_entry_spans,
-)
+from parser import comment_out, find_entry_spans
+
+from edit import _build_entry, _compute_field_order, _extract_field_order, apply_patch, apply_patches
 
 
 # ── find_entry_spans ────────────────────────────────────────────────
@@ -81,7 +75,7 @@ class TestComputeFieldOrder:
 
 class TestCommentOut:
     def test_basic(self):
-        assert _comment_out("@article{k,\n  title={T}\n}") == ("% @article{k,\n%   title={T}\n% }")
+        assert comment_out("@article{k,\n  title={T}\n}") == ("% @article{k,\n%   title={T}\n% }")
 
 
 # ── _build_entry ────────────────────────────────────────────────────

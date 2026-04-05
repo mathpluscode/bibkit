@@ -1,6 +1,6 @@
 [project]
 name = "bibtools"
-version = "1.6.0"
+version = "1.7.0"
 description = "A bibliography toolkit for LaTeX, built as agent skills"
 requires-python = ">=3.10"
 license = "MIT"

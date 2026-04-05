@@ -5,7 +5,7 @@ import os
 
 import pytest
 
-from duplicates import parse_bib_entries
+from parser import parse_bib_entries
 
 from validate import find_entry_block, find_commented_entry, get_field, has_bibtidy_comment, has_url
 

@@ -18,7 +18,8 @@ import re
 import sys
 
 from crossref import fetch_doi, search_bibliographic, search_title
-from duplicates import normalize_doi, normalize_title, parse_bib_entries, split_bibtex_authors
+from duplicates import normalize_doi, normalize_title, split_bibtex_authors
+from parser import parse_bib_entries
 
 
 def _normalize_pages(pages: str) -> str:
@@ -185,34 +186,40 @@ def lookup_and_compare(entry: dict, timeout: int = 10) -> dict:
         result["error"] = "No DOI or title to search"
         return result
 
-    # Collect CrossRef results from multiple strategies.
+    # Collect CrossRef results from all strategies, then deduplicate.
     matches = []
+    seen_dois = set()
     last_error = None
     bib_title_norm = normalize_title(title)
 
-    def _search_and_filter(search_fn, query):
+    def _add(item):
+        item_doi = item.get("doi")
+        if item_doi and item_doi in seen_dois:
+            return
+        if item_doi:
+            seen_dois.add(item_doi)
+        matches.append(item)
+
+    def _search(search_fn, query):
         nonlocal last_error
         cr = search_fn(query, rows=3, timeout=timeout)
         if "error" in cr:
             last_error = cr["error"]
-            return []
-        return [item for item in cr.get("results", [])
-                if normalize_title(item.get("title") or "") == bib_title_norm]
+            return
+        for item in cr.get("results", []):
+            if normalize_title(item.get("title") or "") == bib_title_norm:
+                _add(item)
 
     if title:
-        matches = _search_and_filter(search_title, title)
+        _search(search_title, title)
+        _search(search_bibliographic, title)
 
     if doi:
         cr = fetch_doi(normalize_doi(doi), timeout=timeout)
         if "error" in cr:
             last_error = cr["error"]
         else:
-            existing_dois = {m.get("doi") for m in matches}
-            if cr.get("doi") not in existing_dois:
-                matches.append(cr)
-
-    if not matches and title:
-        matches = _search_and_filter(search_bibliographic, title)
+            _add(cr)
 
     if not matches:
         result["error"] = last_error or "No exact title match in CrossRef results"

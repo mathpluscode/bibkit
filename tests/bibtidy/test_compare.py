@@ -168,7 +168,9 @@ class TestLookupAndCompare:
 
         monkeypatch.setattr(compare_module, "search_title", lambda title, rows=3, timeout=10: {"results": []})
         monkeypatch.setattr(compare_module, "fetch_doi", fake_fetch_doi)
-        result = compare_module.lookup_and_compare({"key": "X", "title": "Test Paper", "doi": "https://dx.doi.org/10.1234/test"})
+        result = compare_module.lookup_and_compare(
+            {"key": "X", "title": "Test Paper", "doi": "https://dx.doi.org/10.1234/test"}
+        )
         assert seen["doi"] == "10.1234/test"
         assert result["error"] is None
 
@@ -181,17 +183,17 @@ class TestLookupAndCompare:
             lambda title, rows=3, timeout=10: {"error": "Bibliographic search failed"},
         )
 
-        result = compare_module.lookup_and_compare({"key": "X", "title": "Attention Is All You Need", "doi": "10.1234/x"})
-        assert result["error"] == "Bibliographic search failed"
+        result = compare_module.lookup_and_compare(
+            {"key": "X", "title": "Attention Is All You Need", "doi": "10.1234/x"}
+        )
+        assert result["error"] == "DOI lookup failed"
 
     def test_bad_doi_returned_alongside_title_match(self, monkeypatch):
         """A resolving DOI that points to a different paper is still returned for agent judgment."""
         correct = {"title": "Real Paper", "authors": ["Smith, John"], "year": "2023", "doi": "10.1234/real"}
         wrong = {"title": "Wrong Paper", "authors": ["Doe, Jane"], "year": "2020", "doi": "10.1234/wrong"}
 
-        monkeypatch.setattr(
-            compare_module, "search_title", lambda title, rows=3, timeout=10: {"results": [correct]}
-        )
+        monkeypatch.setattr(compare_module, "search_title", lambda title, rows=3, timeout=10: {"results": [correct]})
         monkeypatch.setattr(compare_module, "fetch_doi", lambda doi, timeout=10: wrong)
 
         entry = {"key": "X", "title": "Real Paper", "author": "Smith, John", "doi": "10.1234/wrong"}
@@ -217,6 +219,24 @@ class TestLookupAndCompare:
         # Same DOI, so should deduplicate to 1 version
         assert len(result["versions"]) == 1
 
+    def test_bibliographic_search_deduplicates_with_title_match(self, monkeypatch):
+        """Both title and bibliographic searches run; results are deduplicated by DOI."""
+        monkeypatch.setattr(
+            compare_module,
+            "search_title",
+            lambda title, rows=3, timeout=10: {"results": [{"title": "Real Paper", "doi": "10.1234/real"}]},
+        )
+        monkeypatch.setattr(
+            compare_module,
+            "search_bibliographic",
+            lambda title, rows=3, timeout=10: {"results": [{"title": "Real Paper", "doi": "10.1234/real"}]},
+        )
+        monkeypatch.setattr(compare_module, "fetch_doi", lambda doi, timeout=10: {"error": "DOI lookup failed"})
+
+        result = compare_module.lookup_and_compare({"key": "X", "title": "Real Paper", "doi": "10.1234/wrong"})
+        assert result["error"] is None
+        assert len(result["versions"]) == 1
+
     def test_doi_only_entry_no_title(self, monkeypatch):
         """Entry with DOI but no title should still attempt DOI lookup."""
         doi_result = {"title": "Found Paper", "doi": "10.1234/x", "url": "https://doi.org/10.1234/x"}
@@ -234,11 +254,10 @@ class TestLookupAndCompare:
 
 
 class TestVenue:
-    @pytest.mark.parametrize("preprint,published", [
-        ("arXiv preprint arXiv:2210.02747", "Nature"),
-        ("bioRxiv", "Nature"),
-        ("medRxiv", "The Lancet"),
-    ])
+    @pytest.mark.parametrize(
+        "preprint,published",
+        [("arXiv preprint arXiv:2210.02747", "Nature"), ("bioRxiv", "Nature"), ("medRxiv", "The Lancet")],
+    )
     def test_preprint_to_journal(self, preprint, published):
         entry = {"key": "X", "journal": preprint}
         cr = {"journal": published}

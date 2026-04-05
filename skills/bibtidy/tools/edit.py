@@ -23,48 +23,9 @@ import json
 import re
 import sys
 
-from duplicates import is_escaped, parse_bib_entries, remove_special_blocks
+from parser import comment_out, find_entry_spans, parse_bib_entries
 
 _VENUE_SWAP = {"journal": "booktitle", "booktitle": "journal"}
-
-
-def find_entry_spans(text):
-    """Find character spans for each BibTeX entry.
-
-    Returns a list of (key, start, end) tuples where start/end are character
-    offsets covering ``@type{key, ... }`` inclusive.
-    """
-    cleaned = remove_special_blocks(text)
-    cleaned = re.sub(r"(?m)^[ \t]*%.*$", lambda m: " " * len(m.group()), cleaned)
-
-    spans = []
-    for m in re.finditer(r"@(\w+)\s*\{", cleaned):
-        if m.group(1).lower() in ("string", "preamble", "comment"):
-            continue
-        start = m.start()
-        pos = m.end()
-        depth = 1
-        while pos < len(cleaned):
-            ch = cleaned[pos]
-            if ch == "{" and not is_escaped(cleaned, pos):
-                depth += 1
-            elif ch == "}" and not is_escaped(cleaned, pos):
-                depth -= 1
-                if depth == 0:
-                    break
-            pos += 1
-        else:
-            continue
-        end = pos + 1
-
-        body = text[m.end() : end - 1]
-        comma = body.find(",")
-        if comma == -1:
-            continue
-        key = body[:comma].strip()
-        spans.append((key, start, end))
-
-    return spans
 
 
 def _extract_field_order(raw_entry):
@@ -99,11 +60,6 @@ def _compute_field_order(original_order, final_fields):
     return order
 
 
-def _comment_out(text):
-    """Prefix every line with ``% ``."""
-    return "\n".join("% " + line for line in text.split("\n"))
-
-
 def _build_entry(entry_type, key, fields, field_order):
     """Format a BibTeX entry from structured data."""
     lines = [f"@{entry_type}{{{key},"]
@@ -125,7 +81,7 @@ def apply_patch(raw_entry, parsed_entry, patch):
     action = patch["action"]
 
     if action == "not_found":
-        commented = _comment_out(raw_entry)
+        commented = comment_out(raw_entry)
         return (
             "% bibtidy: NOT FOUND \u2014 no matching paper on CrossRef "
             "or web search; verify this reference exists\n" + commented
@@ -158,7 +114,7 @@ def apply_patch(raw_entry, parsed_entry, patch):
     field_order = _compute_field_order(original_order, fields)
 
     # Assemble replacement
-    commented = _comment_out(raw_entry)
+    commented = comment_out(raw_entry)
     meta = []
     for url in sorted(set(patch.get("urls", []))):
         meta.append(f"% bibtidy: {url}")

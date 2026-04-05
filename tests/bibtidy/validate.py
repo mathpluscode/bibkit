@@ -15,7 +15,7 @@ _TOOLS_DIR = _REPO_ROOT / "skills" / "bibtidy" / "tools"
 if str(_TOOLS_DIR) not in sys.path:
     sys.path.insert(0, str(_TOOLS_DIR))
 
-from duplicates import ensure_brace_only_entries, is_escaped, remove_special_blocks  # noqa: E402
+from parser import ensure_brace_only_entries, remove_special_blocks, skip_braces  # noqa: E402
 
 
 def read_file(path):
@@ -28,21 +28,14 @@ def find_entry_block(text, key):
     Returns the entry from @type{key, to its closing brace."""
     ensure_brace_only_entries(text)
     cleaned = remove_special_blocks(text)
-    # Find the non-commented entry start (search cleaned text to skip ghost entries)
     escaped_key = re.escape(key)
     start_match = re.search(rf"^[ \t]*@\w+\{{{escaped_key},", cleaned, re.MULTILINE)
     if not start_match:
         return None
-    start = start_match.start()
-    depth = 1
-    i = start_match.end()
-    while i < len(text) and depth > 0:
-        if text[i] == "{" and not is_escaped(text, i):
-            depth += 1
-        elif text[i] == "}" and not is_escaped(text, i):
-            depth -= 1
-        i += 1
-    return text[start:i] if depth == 0 else None
+    end = skip_braces(text, start_match.end())
+    if end is None:
+        return None
+    return text[start_match.start() : end]
 
 
 def find_commented_entry(text, key):
@@ -56,21 +49,13 @@ def find_commented_entry(text, key):
 
 def get_field(entry, field):
     """Extract a field value from a bib entry, handling nested braces."""
-    # Find the field start
-    match = re.search(rf"{field}\s*=\s*\{{", entry, re.IGNORECASE)
-    if not match:
+    field_match = re.search(rf"{field}\s*=\s*\{{", entry, re.IGNORECASE)
+    if not field_match:
         return None
-    # Walk forward counting braces to find the matching close
-    start = match.end()
-    depth = 1
-    i = start
-    while i < len(entry) and depth > 0:
-        if entry[i] == "{":
-            depth += 1
-        elif entry[i] == "}":
-            depth -= 1
-        i += 1
-    return entry[start : i - 1] if depth == 0 else None
+    end = skip_braces(entry, field_match.end())
+    if end is None:
+        return None
+    return entry[field_match.end() : end - 1]
 
 
 def has_bibtidy_comment(text, key, pattern):
