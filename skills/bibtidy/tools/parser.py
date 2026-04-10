@@ -1,10 +1,12 @@
 #!/usr/bin/env python3
 """Shared BibTeX parsing and source-navigation helpers."""
 
+from __future__ import annotations
+
 import re
 
 
-def comment_out(text):
+def comment_out(text: str) -> str:
     """Prefix every line with ``% ``."""
     return "\n".join("% " + line for line in text.split("\n"))
 
@@ -16,12 +18,12 @@ PAREN_STYLE_ERROR = (
 SPECIAL_TYPES = {"string", "preamble", "comment"}
 
 
-def is_escaped(text, pos):
+def is_escaped(text: str, pos: int) -> bool:
     """Return True if the character at *pos* is preceded by a backslash."""
     return pos > 0 and text[pos - 1] == "\\"
 
 
-def skip_braces(text, pos):
+def skip_braces(text: str, pos: int) -> int | None:
     """Advance from just after an opening '{' to just after its match."""
     depth = 1
     while pos < len(text):
@@ -36,7 +38,7 @@ def skip_braces(text, pos):
     return None
 
 
-def remove_special_blocks(text):
+def remove_special_blocks(text: str) -> str:
     """Replace @string, @preamble, @comment blocks with whitespace."""
     spans = []
     for entry_match in re.finditer(r"@(\w+)\s*\{", text):
@@ -51,7 +53,7 @@ def remove_special_blocks(text):
     return text
 
 
-def ensure_brace_only_entries(text):
+def ensure_brace_only_entries(text: str) -> None:
     """Raise if active file content uses parenthesized BibTeX syntax."""
     cleaned = remove_special_blocks(text)
     cleaned = re.sub(r"(?m)^[ \t]*%.*$", "", cleaned)
@@ -62,7 +64,7 @@ def ensure_brace_only_entries(text):
     raise ValueError(f"{PAREN_STYLE_ERROR} Found '@{entry_match.group(1)}(' on line {line}.")
 
 
-def _read_braced(text, pos):
+def _read_braced(text: str, pos: int) -> tuple[str, int]:
     """Read a brace-delimited value starting at '{'."""
     start = pos + 1
     end = skip_braces(text, start)
@@ -71,7 +73,7 @@ def _read_braced(text, pos):
     return text[start : end - 1], end
 
 
-def _read_quoted(text, pos):
+def _read_quoted(text: str, pos: int) -> tuple[str, int]:
     """Read a quote-delimited value starting at '"'."""
     pos += 1
     start = pos
@@ -88,7 +90,7 @@ def _read_quoted(text, pos):
     return text[start:pos], pos
 
 
-def _read_value(text, pos):
+def _read_value(text: str, pos: int) -> tuple[str, int]:
     """Read a BibTeX field value (braced, quoted, bare, or # concatenation)."""
     parts = []
     while pos < len(text):
@@ -117,7 +119,7 @@ def _read_value(text, pos):
     return " ".join(parts), pos
 
 
-def _parse_fields(text):
+def _parse_fields(text: str) -> dict[str, str]:
     """Extract field = value pairs from the body of a BibTeX entry."""
     fields = {}
     pos = 0
@@ -138,7 +140,7 @@ def _parse_fields(text):
     return fields
 
 
-def parse_bib_entries(text):
+def parse_bib_entries(text: str) -> list[dict[str, str]]:
     """Parse BibTeX entries from *text* into dicts."""
     ensure_brace_only_entries(text)
     cleaned = remove_special_blocks(text)
@@ -159,7 +161,7 @@ def parse_bib_entries(text):
     return entries
 
 
-def find_entry_spans(text):
+def find_entry_spans(text: str) -> list[tuple[str, int, int]]:
     """Return (key, start, end) spans for active BibTeX entries."""
     cleaned = remove_special_blocks(text)
     cleaned = re.sub(r"(?m)^[ \t]*%.*$", lambda m: " " * len(m.group()), cleaned)

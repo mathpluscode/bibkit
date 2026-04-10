@@ -19,6 +19,8 @@ Patch format (JSON array of objects):
     }
 """
 
+from __future__ import annotations
+
 import json
 import re
 import sys
@@ -28,7 +30,7 @@ from parser import comment_out, find_entry_spans, parse_bib_entries
 _VENUE_SWAP = {"journal": "booktitle", "booktitle": "journal"}
 
 
-def _extract_field_order(raw_entry):
+def _extract_field_order(raw_entry: str) -> list[str]:
     """Return field names in source order from raw BibTeX entry text."""
     fields = []
     for line in raw_entry.split("\n")[1:]:
@@ -38,7 +40,7 @@ def _extract_field_order(raw_entry):
     return fields
 
 
-def _compute_field_order(original_order, final_fields):
+def _compute_field_order(original_order: list[str], final_fields: dict[str, str]) -> list[str]:
     """Decide output field order, handling venue swaps."""
     order = []
     used = set()
@@ -60,7 +62,7 @@ def _compute_field_order(original_order, final_fields):
     return order
 
 
-def _build_entry(entry_type, key, fields, field_order):
+def _build_entry(entry_type: str, key: str, fields: dict[str, str], field_order: list[str]) -> str:
     """Format a BibTeX entry from structured data."""
     lines = [f"@{entry_type}{{{key},"]
     for i, f in enumerate(field_order):
@@ -71,7 +73,7 @@ def _build_entry(entry_type, key, fields, field_order):
     return "\n".join(lines)
 
 
-def apply_patch(raw_entry, parsed_entry, patch):
+def apply_patch(raw_entry: str, parsed_entry: dict[str, str], patch: dict) -> str:
     """Return replacement text for a single entry.
 
     *raw_entry* is the original text (``@type{key, ...}``).
@@ -125,7 +127,7 @@ def apply_patch(raw_entry, parsed_entry, patch):
     return "\n".join([commented] + meta + [corrected])
 
 
-def apply_patches(text, patches):
+def apply_patches(text: str, patches: list[dict]) -> tuple[str, set[str]]:
     """Apply all patches to the .bib text, returning (modified text, applied keys)."""
     spans = find_entry_spans(text)
 
@@ -151,7 +153,7 @@ def apply_patches(text, patches):
     return text, applied_keys
 
 
-def main():
+def main() -> None:
     if len(sys.argv) != 3:
         print(f"Usage: {sys.argv[0]} <file.bib> <patches.json>")
         sys.exit(1)

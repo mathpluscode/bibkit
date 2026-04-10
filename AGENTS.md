@@ -42,3 +42,5 @@ The skill's tools live under `skills/bibtidy/tools/` in this repo. At runtime, d
 - Keep code and comments plain, direct, and easy to scan. Avoid decorative formatting or cleverness that does not add meaning.
 - Add comments only when they clarify intent, constraints, or a non-obvious choice. Skip comments that just restate the next line.
 - Prefer small shared helpers and simple structure over repeated logic.
+- All Python functions must have type hints for parameters and return types.
+- All tool scripts under `skills/` must include `from __future__ import annotations` (after the module docstring, before other imports) so they run on Python 3.9+ (Codex runtime).

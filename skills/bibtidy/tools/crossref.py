@@ -10,6 +10,8 @@ Options:
     --timeout SECONDS   HTTP timeout (default: 10)
 """
 
+from __future__ import annotations
+
 import argparse
 import json
 import sys

@@ -12,11 +12,15 @@ Options:
     --timeout SECONDS   HTTP timeout per request (default: 10)
 """
 
+from __future__ import annotations
+
 import argparse
 import json
 import re
 import sys
+from collections.abc import Callable
 
+import log
 from crossref import fetch_doi, search_bibliographic, search_title
 from duplicates import normalize_doi, normalize_title, split_bibtex_authors
 from parser import parse_bib_entries
@@ -80,7 +84,7 @@ def compare_entry(entry: dict, crossref: dict) -> list[dict]:
     """
     mismatches = []
 
-    def _add(field, bib_val, cr_val):
+    def _add(field: str, bib_val: str | None, cr_val: str) -> None:
         mismatches.append({"field": field, "bib_value": bib_val, "crossref_value": cr_val})
 
     # Title
@@ -192,7 +196,7 @@ def lookup_and_compare(entry: dict, timeout: int = 10) -> dict:
     last_error = None
     bib_title_norm = normalize_title(title)
 
-    def _add(item):
+    def _add(item: dict) -> None:
         item_doi = item.get("doi")
         if item_doi and item_doi in seen_dois:
             return
@@ -200,7 +204,7 @@ def lookup_and_compare(entry: dict, timeout: int = 10) -> dict:
             seen_dois.add(item_doi)
         matches.append(item)
 
-    def _search(search_fn, query):
+    def _search(search_fn: Callable[[str, int, int], dict], query: str) -> None:
         nonlocal last_error
         cr = search_fn(query, rows=3, timeout=timeout)
         if "error" in cr:

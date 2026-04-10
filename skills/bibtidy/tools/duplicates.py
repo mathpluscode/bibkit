@@ -6,10 +6,13 @@ Usage: python3 duplicates.py <file.bib>
 Outputs a JSON array of duplicate pairs to stdout.
 """
 
+from __future__ import annotations
+
 import json
 import re
 import sys
 import unicodedata
+from collections.abc import Iterator
 
 from parser import comment_out, ensure_brace_only_entries, find_entry_spans, parse_bib_entries
 
@@ -18,12 +21,12 @@ _AUTHOR_SPLIT_RE = re.compile(r"\s+and\s+")
 _PREPRINT_VENUE_RE = re.compile(r"\b(arxiv|biorxiv|chemrxiv|medrxiv)\b", re.IGNORECASE)
 
 
-def normalize_doi(doi):
+def normalize_doi(doi: str) -> str:
     """Normalize DOI strings for comparison and indexing."""
     return _DOI_URL_RE.sub("", doi.strip()).lower()
 
 
-def split_bibtex_authors(authors_str):
+def split_bibtex_authors(authors_str: str) -> list[str]:
     """Split a BibTeX author field on the 'and' separator."""
     authors_str = authors_str.strip()
     if not authors_str:
@@ -31,7 +34,7 @@ def split_bibtex_authors(authors_str):
     return [name for name in _AUTHOR_SPLIT_RE.split(authors_str) if name.strip()]
 
 
-def normalize_title(title):
+def normalize_title(title: str) -> str:
     """Normalize a title for fuzzy comparison."""
     t = title.lower()
     t = re.sub(r"\\[a-zA-Z]+\s*", "", t)
@@ -44,7 +47,7 @@ def normalize_title(title):
     return t
 
 
-def _normalize_author_last(name):
+def _normalize_author_last(name: str) -> str:
     """Extract a lowercase last name from 'Last, First' or 'First Last'."""
     name = name.strip()
     if "," in name:
@@ -53,7 +56,7 @@ def _normalize_author_last(name):
     return parts[-1].lower() if parts else ""
 
 
-def _share_author(ea, eb):
+def _share_author(ea: dict[str, str], eb: dict[str, str]) -> bool:
     """Return True if two entries share at least one author last name."""
     a_raw = ea.get("author", "")
     b_raw = eb.get("author", "")
@@ -66,7 +69,7 @@ def _share_author(ea, eb):
     return bool(a_names & b_names)
 
 
-def _first_author_last(entry):
+def _first_author_last(entry: dict[str, str]) -> str:
     """Return the lowercase last name of the first author, if present."""
     authors = split_bibtex_authors(entry.get("author", ""))
     if not authors:
@@ -74,23 +77,23 @@ def _first_author_last(entry):
     return _normalize_author_last(authors[0])
 
 
-def _entry_venue(entry):
+def _entry_venue(entry: dict[str, str]) -> str:
     """Return the venue-like field used to classify preprints."""
     return entry.get("journal", "") or entry.get("booktitle", "")
 
 
-def _is_preprint(entry):
+def _is_preprint(entry: dict[str, str]) -> bool:
     """Return True for arXiv/bioRxiv/medRxiv/chemRxiv-style entries."""
     venue = _entry_venue(entry)
     return entry.get("entry_type") == "preprint" or bool(_PREPRINT_VENUE_RE.search(venue))
 
 
-def _title_keywords(title):
+def _title_keywords(title: str) -> set[str]:
     """Return significant normalized title words for fuzzy duplicate checks."""
     return {word for word in normalize_title(title).split() if len(word) >= 6}
 
 
-def _parse_year(entry):
+def _parse_year(entry: dict[str, str]) -> int | None:
     """Return the entry year as an int when it looks usable."""
     try:
         return int((entry.get("year") or "").strip())
@@ -98,7 +101,7 @@ def _parse_year(entry):
         return None
 
 
-def _is_preprint_published_pair(ea, eb):
+def _is_preprint_published_pair(ea: dict[str, str], eb: dict[str, str]) -> bool:
     """Heuristic for retitled preprint/published pairs with the same lead author."""
     if ea["key"] == eb["key"] or _is_preprint(ea) == _is_preprint(eb):
         return False
@@ -115,18 +118,18 @@ def _is_preprint_published_pair(ea, eb):
     return len(_title_keywords(ea.get("title", "")) & _title_keywords(eb.get("title", ""))) >= 3
 
 
-def _normalize_field_value(value):
+def _normalize_field_value(value: str) -> str:
     """Normalize a field value for exact comparison (collapse whitespace)."""
     return re.sub(r"\s+", " ", value.strip())
 
 
-def _entry_fingerprint(entry):
+def _entry_fingerprint(entry: dict[str, str]) -> tuple:
     """Return a hashable fingerprint for exact duplicate detection."""
     fields = {k: _normalize_field_value(v) for k, v in entry.items() if k not in ("key", "entry_type")}
     return (entry["key"], entry["entry_type"], tuple(sorted(fields.items())))
 
 
-def remove_exact_duplicates(text):
+def remove_exact_duplicates(text: str) -> tuple[str, int]:
     """Comment out exact duplicate entries in bib text.
 
     Returns (modified_text, count_removed).
@@ -155,7 +158,7 @@ def remove_exact_duplicates(text):
     return text, len(to_remove)
 
 
-def find_duplicates(entries):
+def find_duplicates(entries: list[dict[str, str]]) -> list[dict]:
     """Return a list of duplicate-pair dicts."""
     duplicates = []
     keys_seen = {}
@@ -163,7 +166,7 @@ def find_duplicates(entries):
     titles_seen = {}
     seen_pairs = set()
 
-    def _add(dup_type, a, b, detail):
+    def _add(dup_type: str, a: int, b: int, detail: str) -> None:
         pair = (a, b)
         if pair in seen_pairs:
             return
@@ -182,7 +185,7 @@ def find_duplicates(entries):
         if norm:
             titles_seen.setdefault(norm, []).append(i)
 
-    def _pairs(idxs):
+    def _pairs(idxs: list[int]) -> Iterator[tuple[int, int]]:
         for a in range(len(idxs)):
             for b in range(a + 1, len(idxs)):
                 yield idxs[a], idxs[b]
@@ -215,7 +218,7 @@ def find_duplicates(entries):
     return duplicates
 
 
-def main():
+def main() -> None:
     if len(sys.argv) == 3 and sys.argv[2] == "--exact":
         path = sys.argv[1]
         try:
