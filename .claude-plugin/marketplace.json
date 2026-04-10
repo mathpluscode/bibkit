@@ -11,12 +11,9 @@
   "plugins": [
     {
       "name": "bibtools",
-      "source": {
-        "source": "local",
-        "path": "./"
-      },
+      "source": "./",
       "description": "A bibliography toolkit for LaTeX",
-      "version": "1.7.0",
+      "version": "1.7.1",
       "keywords": ["bibtex", "bibliography", "latex", "overleaf", "academic", "reference", "citation"],
       "category": "academic",
       "license": "MIT"
