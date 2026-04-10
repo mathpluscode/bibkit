@@ -36,7 +36,7 @@ echo ""
 START_TIME=$SECONDS
 
 codex --search exec \
-    --full-auto \
+    --sandbox danger-full-access \
     --add-dir "$CODEX_HOME_DIR/skills" \
     -C "$REPO_DIR" \
     "Use the bibtidy skill to validate and fix $GOT in place. Follow the skill exactly." >/dev/null

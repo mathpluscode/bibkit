@@ -83,7 +83,7 @@ For unchanged entries, do NOT add any comments or URLs.
 ## Workflow
 
 - Read the .bib file, note the file path
-- Clear the log file: `> <file>.bib.log`
+- Clear the log file: `> <file>.bib.cc.log` (Claude Code) or `> <file>.bib.codex.log` (Codex)
 - Back up for format validation: `cp <file>.bib <file>.bib.orig`
 - Preserve `@string`, `@preamble`, `@comment` blocks verbatim
 - **Comment out exact/subset duplicates**: `python3 $TOOLS_DIR/duplicates.py <file.bib> --exact` — this comments out entries that are identical or a strict subset of another entry (same key, same type, matching fields). The entry with more fields is kept. Safe to auto-comment since no information is lost.
