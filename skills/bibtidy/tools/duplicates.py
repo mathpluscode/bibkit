@@ -14,6 +14,7 @@ import sys
 import unicodedata
 from collections.abc import Iterator
 
+import log
 from parser import comment_out, ensure_brace_only_entries, find_entry_spans, parse_bib_entries
 
 _DOI_URL_RE = re.compile(r"^https?://(?:dx\.)?doi\.org/", re.IGNORECASE)
@@ -221,6 +222,7 @@ def find_duplicates(entries: list[dict[str, str]]) -> list[dict]:
 def main() -> None:
     if len(sys.argv) == 3 and sys.argv[2] == "--exact":
         path = sys.argv[1]
+        log.setup(path)
         try:
             with open(path, encoding="utf-8") as f:
                 text = f.read()
@@ -244,6 +246,7 @@ def main() -> None:
         sys.exit(1)
 
     path = sys.argv[1]
+    log.setup(path)
     try:
         with open(path, encoding="utf-8") as f:
             text = f.read()

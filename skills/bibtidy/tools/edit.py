@@ -25,6 +25,7 @@ import json
 import re
 import sys
 
+import log
 from parser import comment_out, find_entry_spans, parse_bib_entries
 
 _VENUE_SWAP = {"journal": "booktitle", "booktitle": "journal"}
@@ -160,6 +161,8 @@ def main() -> None:
 
     bib_path = sys.argv[1]
     patch_arg = sys.argv[2]
+
+    log.setup(bib_path)
 
     with open(bib_path, encoding="utf-8") as f:
         text = f.read()

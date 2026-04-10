@@ -250,6 +250,8 @@ def main() -> None:
     parser.add_argument("--timeout", type=int, default=10, help="HTTP timeout in seconds")
     args = parser.parse_args()
 
+    log.setup(args.bibfile)
+
     try:
         with open(args.bibfile, encoding="utf-8") as f:
             text = f.read()
